@@ -4,6 +4,10 @@
 
 ## Requirements
 
+Python packages required (can be installed via pip or conda):
+
+- python >= 3.6.1
+
 To install requirements:
 
 ```setup
