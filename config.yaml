@@ -1,1 +1,14 @@
-
+# config.yaml - À MODIFIER
+general: # for generic args
+  batch_size: 32
+  num_tasks: 10
+  with_mask: False
+  log_interval: 100
+optim: # for optimizer args
+  learning_rate: 0.001
+  optimizer: sgd
+  scheduler: plateau
+  scheduler_gamma: 0.9
+  weight_decay: 0.9
+model:
+  hidden_dim: 100
