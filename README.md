@@ -1,4 +1,4 @@
-# RTMDet - Machine Learning Reproductibility Challenge 2024
+# RTMDet - ML Reproductibility Challenge 2024
 
 >📋  Optional: include a graphic explaining main result (+bibtex entry, link to demos, blog posts and tutorials?)
 
