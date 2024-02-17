@@ -1,6 +1,6 @@
 # RTMDet - Machine Learning Reproductibility Challenge 2024
 
->📋  Optional: include a graphic explaining your approach/main result, bibtex entry, link to demos, blog posts and tutorials
+>📋  Optional: include a graphic explaining main result (+bibtex entry, link to demos, blog posts and tutorials?)
 
 ## Requirements
 
@@ -14,49 +14,83 @@ To install requirements:
 pip install -r requirements.txt
 ```
 
->📋  Describe how to set up the environment, e.g. pip/conda/docker commands, download datasets, etc...
+>📋  Anything else required to set up the environment?
+
+Download INSER HERE dataset:
+
+```python
+print("Hello World")
+```
 
 ## Training
 
-To train the model(s) in the paper, run this command:
+To train the model in the paper, run this command:
 
 ```train
 python train.py --input-data <path_to_data> --alpha 10 --beta 20
 ```
 
->📋  Describe how to train the models, with example commands on how to train the models in your paper, including the full training procedure and appropriate hyperparameters.
+>📋  Example commands on how to train, including the full training procedure and appropriate hyperparameters.
 
 ## Evaluation
 
-To evaluate my model on ImageNet, run:
+To evaluate my model on ImageNet (TO MODIFY), run:
 
 ```eval
 python eval.py --model-file mymodel.pth --benchmark imagenet
 ```
 
->📋  Describe how to evaluate the trained models on benchmarks reported in the paper, give commands that produce the results (section below).
+>📋  Evaluate the trained models on benchmarks reported, give commands that produce the results just below.
 
 ## Pre-trained Models
 
 You can download pretrained models here:
 
-- [My awesome model](https://drive.google.com/mymodel.pth) trained on ImageNet using parameters x,y,z. 
-
->📋  Give a link to where/how the pretrained models can be downloaded and how they were trained (if applicable).  Alternatively you can have an additional column in your results table with a link to the models.
+- [My awesome model](https://drive.google.com/mymodel.pth) trained on SOMETHING using parameters x,y,z. 
 
 ## Results
 
 Our model achieves the following performance on :
 
-### [Image Classification on ImageNet](https://paperswithcode.com/sota/image-classification-on-imagenet)
+### [Image Classification on SOMETHING](https://paperswithcode.com/sota/image-classification-on-imagenet)
 
 | Model name         | Top 1 Accuracy  | Top 5 Accuracy |
 | ------------------ |---------------- | -------------- |
 | My awesome model   |     85%         |      95%       |
 
->📋  Include a table of results from your paper, and link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it. 
+>📋  Don't forget to link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it. 
 
+Lists of interesting results to reproduce in RTMDet:
+
+- Comparison with RTMDet on the number of parameters, FLOPS, latency, and accuracy on COCO
+val2017 set (300 iterations, Table 2 and 3)
+- Architecture performance comparaison with reproduced model (Table 5)
+- Reproduce some results only shown for RTMDet-R (we reproduce RTMDet-ins only)?
+
+## Citation
+
+If you use this code in your research, please cite the following:
+
+@inproceedings{lim2019fast,
+  title={RTMDet MLRP2024},
+  author={Pierre-Luc Asselin, Vincent Coulombe},
+  year={2024}
+}
 
 ## Contributing
 
->📋  Pick a licence and describe how to contribute to your code repository. 
+We want to make contributing to this project as easy and transparent as
+possible.
+
+### Pull Requests
+We actively welcome your pull requests.
+
+1. Fork the repo and create your branch from `master`.
+2. If you've added code that should be tested, add tests.
+3. If you've changed APIs, update the documentation.
+4. Ensure the test suite passes.
+5. Make sure your code lints.
+
+### License
+By contributing, you agree that your contributions will be licensed
+under the LICENSE file in the root directory of this source tree.
