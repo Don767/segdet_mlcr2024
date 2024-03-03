@@ -50,7 +50,7 @@ python train.py --input-data <path_to_data> --alpha 10 --beta 20
 
 ## Evaluation
 
-To evaluate my model on ImageNet (TO MODIFY), run:
+To evaluate my model on [MS COCO Val 2017](https://cocodataset.org/#download), run:
 
 ```eval
 python eval.py --model-file mymodel.pth --benchmark imagenet
