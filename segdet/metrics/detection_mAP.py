@@ -1,12 +1,7 @@
-# Based on https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-# TO MODIFY
-# ALSO SEE THIS https://www.neuralception.com/cocodatasetapi/
-
 import matplotlib.pyplot as plt
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 import numpy as np
-# import skimage.io as io
 
 
 annType = ['segm','bbox','keypoints']
@@ -17,7 +12,6 @@ if annType == 'keypoints':
 else:
     prefix = 'instances'
 
-print('Running demo for *%s* results.'%(annType))
 
 #initialize COCO ground truth api
 dataDir = '../../coco'

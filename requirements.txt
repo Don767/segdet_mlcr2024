@@ -4,3 +4,5 @@ setuptools>=18.0
 cython>=0.27.3
 numpy>=1.26.0
 skimage>=0.22.0
+torch>=2.2.1
+psutil>=5.9.8
