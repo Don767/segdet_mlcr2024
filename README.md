@@ -89,7 +89,7 @@ If you use this code in your research, please cite the following:
 
 @inproceedings{lim2019fast,
   title={RTMDet MLRP2024},
-  author={Pierre-Luc Asselin, Vincent Coulombe},
+  author={Pierre-Luc Asselin, Vincent Coulombe, William Guimont-Martin, William Larrivée-Hardy},
   year={2024}
 }
 
