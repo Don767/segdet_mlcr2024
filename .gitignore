@@ -1,0 +1,10 @@
+coco/*
+
+*.pyc
+__pycache__
+
+.env
+
+venv/
+
+tools/launch_training.sh
