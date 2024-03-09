@@ -408,7 +408,7 @@ tta_pipeline = [
 #### Hooks ####
 default_hooks = dict(
     checkpoint=dict(
-        interval=-1, type="CheckpointHook", save_best=metric, rule="greater"
+        interval=-1, type="CheckpointHook", save_best="coco/bbox_mAP_50", rule="greater"
     ),
     logger=dict(interval=50, type="LoggerHook"),
     param_scheduler=dict(type="ParamSchedulerHook"),
