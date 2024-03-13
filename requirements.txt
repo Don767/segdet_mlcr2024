@@ -9,3 +9,4 @@ torchvision==0.17.1
 tensorboard==2.16.2
 psutil>=5.9.8
 openmim==0.3.9
+wandb==0.16.4
