@@ -55,8 +55,7 @@ visualizer = dict(
         dict(
             type="WandbVisBackend",
             init_kwargs=dict(
-                project="rtmdet", entity="gif-7010", group="debuging_runs"
-            ),
+                project="rtmdet", entity="gif-7010"),
         ),
     ],
 )
