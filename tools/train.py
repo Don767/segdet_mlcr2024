@@ -1,5 +1,9 @@
 import argparse
+import sys
+import os
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import importlib
 from mmengine.config import Config
 from mmengine.runner import Runner
 from mmdet.utils import setup_cache_size_limit_of_dynamo
@@ -7,17 +11,22 @@ from mmdet.utils import setup_cache_size_limit_of_dynamo
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a detector")
-    parser.add_argument("config", help="train config file path")
+    parser.add_argument("config", help="model config file path")
     args = parser.parse_args()
     return args
+
+
+def build_model(model: str, model_cfg: dict, **kwargs):
+    module = importlib.import_module(f"segdet.models.{model}.model")
+    return module.Model(**model_cfg, **kwargs)
 
 
 def main(args):
     setup_cache_size_limit_of_dynamo()
     cfg = Config.fromfile(args.config)
-
+    model_cfg = cfg.get("model")
     runner = Runner(
-        model=cfg.get("model"),
+        model=build_model(model_cfg.pop("type"), model_cfg),
         work_dir=cfg.get("work_dir"),
         train_dataloader=cfg.get("train_dataloader"),
         val_dataloader=cfg.get("val_dataloader"),

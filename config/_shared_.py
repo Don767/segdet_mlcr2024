@@ -39,7 +39,7 @@ data_preprocessor = dict(
 #### Training/Evaluation ####
 metric = "mAP"
 evaluation = dict(save_best=metric)
-val_interval = 10
+val_interval = 5
 val_ann_file = "annotations/instances_val2017.json"
 val_img_prefix = "val2017/"
 train_ann_file = "annotations/instances_train2017.json"
