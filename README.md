@@ -2,21 +2,25 @@
 
 >📋  Optional: include a graphic explaining main result (+bibtex entry, link to demos, blog posts and tutorials?)
 
-## Requirements
+## Installation
 
 Python packages required (can be installed via pip or conda):
 
 - python >= 3.6.1
 
-To install requirements:
+>📋  Verify that the Python version is correct.
 
-```setup
-pip install -r requirements.txt
-```
+Please refer to [doc/INSTALL.md](doc/INSTALL.md) for more details on how to install the required packages and dependencies.
+
+
+
+More details on how to install the required packages and dependencies can be found in [doc/INSTALL.md](doc/INSTALL.md).
+
+Details on how to download the datasets used in this project can be found in [doc/DATASETS.md](doc/DATASETS.md).
 
 >📋  Anything else required to set up the environment?
 
-Download INSER HERE dataset:
+Download INSERT HERE dataset:
 
 ```python
 print("Hello World")

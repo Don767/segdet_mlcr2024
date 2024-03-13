@@ -1,11 +1,10 @@
 coco/*
 logs/*
-
 *.pyc
-__pycache__
-
+__pycache__/
+.idea/
 .env
-
 venv/
-
+.venv/
 tools/launch_training.sh
+data
