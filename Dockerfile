@@ -9,13 +9,12 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install openmim && \
-    mim install "mmengine>=0.7.1" "mmcv>=2.0.0rc4"
-
-WORKDIR /app
-COPY requirements.txt /app/requirements.txt
-RUN python -m pip install --upgrade pip
-RUN python -m pip install -r /app/requirements.txt
+#RUN python -m pip install --upgrade pip
+RUN pip install openmim
 RUN mim install mmcv==2.1.0
 RUN mim install mmdet==3.3.0
+
+WORKDIR /app
+#COPY requirements.txt /app/requirements.txt
+#RUN python -m pip install -r /app/requirements.txt
 ENV PYTHONPATH=/app:$PYTHONPATH
