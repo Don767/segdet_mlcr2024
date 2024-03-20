@@ -31,8 +31,8 @@ Then, you can extract the files and create the symlinks using the following comm
 ```shell
 # Extract files
 for file in *.zip; do
-    unzip "$file" -d "${file%.zip}"
-done
+    unzip "$file" &
+done && wait
 
 # Create symlink
 ln -s /path/to/coco/ data/coco

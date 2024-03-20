@@ -16,13 +16,14 @@ python train.py --config <path/to/config>
 docker build -t segdet .
 
 # Run docker image
-CONFIG=path/to/config> # for example `config/segsdet.yaml`
-CUDA_VISIBLE_DEVICES=all # or `0,1` for specific GPUs, will be automatically set by SLURM
+export CONFIG=path/to/config> # for example `config/segsdet.yaml`
+export CUDA_VISIBLE_DEVICES=all # or `0,1` for specific GPUs, will be automatically set by SLURM
 
-docker run --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES --rm --ipc host \
-  --mount type=bind,source=.,target=/code/ \
+docker run --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES --rm -it --ipc host \
+  --mount type=bind,source=.,target=/app/ \
+  --mount type=bind,source=$(pwd)/data/coco,target=/app/data/coco \
   --mount type=bind,source=/dev/shm,target=/dev/shm \
-  segdet python3 main.py path/to/config
+  segdet python3 tools/train.py $CONFIG
 ```
 
 ## Train with sjm to manage SLURM jobs

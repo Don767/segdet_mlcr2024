@@ -1,7 +1,6 @@
 from mmengine.config import read_base
 
 with read_base():
-    from ._shared_ import data_preprocessor
     from ._shared_ import *
 
 checkpoint = "https://download.openmmlab.com/mmdetection/v3.0/rtmdet/cspnext_rsb_pretrain/cspnext-s_imagenet_600e.pth"
@@ -48,15 +47,15 @@ model = dict(
     ),
 )
 
-visualizer = dict(
-    type="Visualizer",
-    vis_backends=[
-        dict(type="LocalVisBackend"),
-        dict(
-            type="WandbVisBackend",
-            init_kwargs=dict(
-                project="rtmdet", entity="gif-7010"),
-        ),
-    ],
-)
+# visualizer = dict(
+    # type="Visualizer",
+    # vis_backends=[
+    #     dict(type="LocalVisBackend"),
+    #     dict(
+    #         type="WandbVisBackend",
+    #         init_kwargs=dict(
+    #             project="rtmdet", entity="gif-7010"),
+    #     ),
+    # ],
+# )
 work_dir = "../logs/rtmdet"

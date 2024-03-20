@@ -1,4 +1,5 @@
 coco/*
+data/
 *.pyc
 __pycache__/
 .idea/
