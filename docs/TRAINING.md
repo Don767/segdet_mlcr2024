@@ -17,7 +17,7 @@ docker build -t segdet .
 
 # Run docker image
 export CONFIG=path/to/config> # for example `config/segsdet.yaml`
-export CUDA_VISIBLE_DEVICES=all # or `0,1` for specific GPUs, will be automatically set by SLURM
+export CUDA_VISIBLE_DEVICES=0 # or `0,1` for specific GPUs, will be automatically set by SLURM
 
 docker run --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES --rm -it --ipc host \
   --mount type=bind,source=.,target=/app/ \
