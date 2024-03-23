@@ -1,4 +1,6 @@
 import argparse
+import glob
+from pathlib import Path
 import sys
 import os
 
@@ -9,10 +11,22 @@ from mmengine.runner import Runner
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 
 
+def check_file(file):
+    # Search for file if not found
+    if Path(file).is_file() or file == '':
+        return file
+    else:
+        files = glob.glob('./**/' + file, recursive=True)  # find file
+        assert len(files), f'File Not Found: {file}'  # assert file was found
+        assert len(files) == 1, f"Multiple files match '{file}', specify exact path: {files}"  # assert unique
+        return files[0]  # return file
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a detector")
     parser.add_argument("config", help="model config file path")
     args = parser.parse_args()
+
     return args
 
 
@@ -23,7 +37,9 @@ def build_model(model: str, model_cfg: dict, **kwargs):
 
 def main(args):
     setup_cache_size_limit_of_dynamo()
-    cfg = Config.fromfile(args.config)
+    config_file = check_file(args.config)  # check file
+    cfg = Config.fromfile(config_file)
+
     model_cfg = cfg.get("model")
     runner = Runner(
         model=build_model(model_cfg.pop("type"), model_cfg),

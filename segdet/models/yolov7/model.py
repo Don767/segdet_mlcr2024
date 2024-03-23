@@ -1,4 +1,7 @@
-import argparse
+# code: utf-8
+# author: Pierre-Luc Asselin
+# Based on: https://github.com/wongkinyiu/yolov7
+
 import logging
 import sys
 from copy import deepcopy
@@ -12,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class IDetect(nn.Module):
+    # IDetect as used in Yolov7's freebies
+    # Detect block integrating YOLOR implicit knowledge
+    # Original from YOLOR: https://github.com/WongKinYiu/yolor
     stride = None  # strides computed during build
     export = False  # onnx export
     end2end = False
@@ -119,6 +125,9 @@ class IDetect(nn.Module):
 
 
 class Model(nn.Module):
+    # Yolov7 genealist Model generation/configuration class
+    # Can be used with a varieties of freebies
+    # Original: https://github.com/wongkinyiu/yolov7
     def __init__(self, cfg='config/config_yolov7.yaml', ch=3, nc=None, anchors=None):  # model, input channels, number of classes
         super(Model, self).__init__()
         self.traced = False
@@ -317,22 +326,3 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
             ch = []
         ch.append(c2)
     return nn.Sequential(*layers), sorted(save)
-
-
-#TODO - LINE TOOL TAKEN FROM OFFICIAL REPO - TO REMOVE?
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--cfg', type=str, default='config/config_yolov7.yaml', help='model.yaml')
-    parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
-    parser.add_argument('--profile', action='store_true', help='profile model speed')
-    opt = parser.parse_args()
-    opt.cfg = check_file(opt.cfg)  # check file
-    device = select_device(opt.device)
-
-    # Create model
-    model = Model(opt.cfg).to(device)
-    model.train()
-    
-    if opt.profile:
-        img = torch.rand(1, 3, 640, 640).to(device)
-        y = model(img, profile=True)

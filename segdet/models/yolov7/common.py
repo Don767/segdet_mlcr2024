@@ -1,16 +1,20 @@
+# code: utf-8
+# author: Pierre-Luc Asselin
+# Based on: https://github.com/wongkinyiu/yolov7
+
 import numpy as np
 import torch
 import torch.nn as nn
 
 
 def autopad(k, p=None):  # kernel, padding
-    # Pad to 'same'
     if p is None:
-        p = k // 2 if isinstance(k, int) else [x // 2 for x in k]  # auto-pad
+        p = k // 2 if isinstance(k, int) else [x // 2 for x in k]  # auto-padding
     return p
 
 
 class MP(nn.Module):
+    # Maximum pooling as used in Yolov7's freebies
     def __init__(self, k=2):
         super(MP, self).__init__()
         self.m = nn.MaxPool2d(kernel_size=k, stride=k)
@@ -20,6 +24,7 @@ class MP(nn.Module):
 
 
 class Concat(nn.Module):
+    # Standard concatenation as used in Yolov7's freebies
     def __init__(self, dimension=1):
         super(Concat, self).__init__()
         self.d = dimension
@@ -29,7 +34,7 @@ class Concat(nn.Module):
 
 
 class Conv(nn.Module):
-    # Standard convolution
+    # Standard convolution as used in Yolov7's freebies
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True):  # ch_in, ch_out, kernel, stride, padding, groups
         super(Conv, self).__init__()
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p), groups=g, bias=False)
@@ -44,7 +49,8 @@ class Conv(nn.Module):
 
 
 class SPPCSPC(nn.Module):
-    # CSP https://github.com/WongKinYiu/CrossStagePartialNetworks
+    # Spatial Pyramid Pooling Layer for Cross Stage Partial Network as used in Yolov7's freebies
+    # Original: https://github.com/WongKinYiu/CrossStagePartialNetworks
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, k=(5, 9, 13)):
         super(SPPCSPC, self).__init__()
         c_ = int(2 * c2 * e)  # hidden channels
@@ -65,6 +71,8 @@ class SPPCSPC(nn.Module):
 
 
 class ImplicitA(nn.Module):
+    # Implicit Addition as used in Yolov7's freebies
+    # Original from YOLOR: https://github.com/WongKinYiu/yolor
     def __init__(self, channel, mean=0., std=.02):
         super(ImplicitA, self).__init__()
         self.channel = channel
@@ -78,6 +86,8 @@ class ImplicitA(nn.Module):
     
 
 class ImplicitM(nn.Module):
+    # Implicit Multiplication as used in Yolov7's freebies
+    # Original from YOLOR: https://github.com/WongKinYiu/yolor
     def __init__(self, channel, mean=1., std=.02):
         super(ImplicitM, self).__init__()
         self.channel = channel
@@ -91,8 +101,8 @@ class ImplicitM(nn.Module):
 
 
 class RepConv(nn.Module):
-    # Represented convolution
-    # https://arxiv.org/abs/2101.03697
+    # Represented convolution as used in Yolov7's freebies
+    # Original article: https://arxiv.org/abs/2101.03697
 
     def __init__(self, c1, c2, k=3, s=1, p=None, g=1, act=True, deploy=False):
         super(RepConv, self).__init__()
@@ -224,7 +234,6 @@ class RepConv(nn.Module):
         
         # Fuse self.rbr_identity
         if (isinstance(self.rbr_identity, nn.BatchNorm2d) or isinstance(self.rbr_identity, nn.modules.batchnorm.SyncBatchNorm)):
-            # print(f"fuse: rbr_identity == BatchNorm2d or SyncBatchNorm")
             identity_conv_1x1 = nn.Conv2d(
                     in_channels=self.in_channels,
                     out_channels=self.out_channels,
@@ -235,24 +244,17 @@ class RepConv(nn.Module):
                     bias=False)
             identity_conv_1x1.weight.data = identity_conv_1x1.weight.data.to(self.rbr_1x1.weight.data.device)
             identity_conv_1x1.weight.data = identity_conv_1x1.weight.data.squeeze().squeeze()
-            # print(f" identity_conv_1x1.weight = {identity_conv_1x1.weight.shape}")
             identity_conv_1x1.weight.data.fill_(0.0)
             identity_conv_1x1.weight.data.fill_diagonal_(1.0)
             identity_conv_1x1.weight.data = identity_conv_1x1.weight.data.unsqueeze(2).unsqueeze(3)
-            # print(f" identity_conv_1x1.weight = {identity_conv_1x1.weight.shape}")
 
             identity_conv_1x1 = self.fuse_conv_bn(identity_conv_1x1, self.rbr_identity)
             bias_identity_expanded = identity_conv_1x1.bias
             weight_identity_expanded = torch.nn.functional.pad(identity_conv_1x1.weight, [1, 1, 1, 1])            
         else:
-            # print(f"fuse: rbr_identity != BatchNorm2d, rbr_identity = {self.rbr_identity}")
             bias_identity_expanded = torch.nn.Parameter( torch.zeros_like(rbr_1x1_bias) )
             weight_identity_expanded = torch.nn.Parameter( torch.zeros_like(weight_1x1_expanded) )            
         
-
-        #print(f"self.rbr_1x1.weight = {self.rbr_1x1.weight.shape}, ")
-        #print(f"weight_1x1_expanded = {weight_1x1_expanded.shape}, ")
-        #print(f"self.rbr_dense.weight = {self.rbr_dense.weight.shape}, ")
 
         self.rbr_dense.weight = torch.nn.Parameter(self.rbr_dense.weight + weight_1x1_expanded + weight_identity_expanded)
         self.rbr_dense.bias = torch.nn.Parameter(self.rbr_dense.bias + rbr_1x1_bias + bias_identity_expanded)
