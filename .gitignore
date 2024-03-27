@@ -8,3 +8,5 @@ __pycache__/
 venv/
 .venv/
 tools/launch_training.sh
+*.pt
+*.pth
