@@ -4,9 +4,10 @@ import torch.nn as nn
 
 from mmengine.model import bias_init_with_prob, constant_init, normal_init
 from mmengine.structures import InstanceData
-from mmengine.structures import InstanceData
+from mmengine.config import ConfigDict
 
 from mmcv.cnn import ConvModule, is_norm
+from mmcv.ops import batched_nms
 
 from mmdet.structures.bbox import distance2bbox
 from mmdet.registry import TASK_UTILS, MODELS
@@ -25,6 +26,7 @@ from mmdet.models.utils import (
     multi_apply,
     unmap,
 )
+from mmdet.structures.bbox import get_box_tensor, get_box_wh, scale_boxes
 
 
 class RTMDetHead(BaseDenseHead):
@@ -392,6 +394,43 @@ class RTMDetHead(BaseDenseHead):
             assign_metrics_list,
             sampling_results_list,
         )
+
+    def _bbox_post_process(
+        self,
+        results: InstanceData,
+        cfg: ConfigDict,
+        rescale: bool = False,
+        with_nms: bool = True,
+        img_meta: Optional[dict] = None,
+    ) -> InstanceData:
+        if rescale:
+            assert img_meta.get("scale_factor") is not None
+            scale_factor = [1 / s for s in img_meta["scale_factor"]]
+            results.bboxes = scale_boxes(results.bboxes, scale_factor)
+
+        if hasattr(results, "score_factors"):
+            score_factors = results.pop("score_factors")
+            results.scores = results.scores * score_factors
+
+        if cfg.get("min_bbox_size", -1) >= 0:
+            w, h = get_box_wh(results.bboxes)
+            valid_mask = (w > cfg.min_bbox_size) & (h > cfg.min_bbox_size)
+            if not valid_mask.all():
+                results = results[valid_mask]
+        if with_nms and results.bboxes.numel() > 0:
+            bboxes = get_box_tensor(results.bboxes)
+            with torch.cuda.amp.autocast(enabled=False):
+                det_bboxes, keep_idxs = batched_nms(
+                    bboxes.float(),
+                    results.scores.float(),
+                    results.labels.float(),
+                    cfg.nms,
+                )
+            results = results[keep_idxs]
+            results.scores = det_bboxes[:, -1]
+            results = results[: cfg.max_per_img]
+
+        return results
 
     def _get_targets_single(
         self,

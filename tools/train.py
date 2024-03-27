@@ -1,25 +1,10 @@
 import argparse
-import glob
-from pathlib import Path
-import sys
-import os
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import importlib
 from mmengine.config import Config
 from mmengine.runner import Runner
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 
-
-def check_file(file):
-    # Search for file if not found
-    if Path(file).is_file() or file == '':
-        return file
-    else:
-        files = glob.glob('./**/' + file, recursive=True)  # find file
-        assert len(files), f'File Not Found: {file}'  # assert file was found
-        assert len(files) == 1, f"Multiple files match '{file}', specify exact path: {files}"  # assert unique
-        return files[0]  # return file
+from .loading_utils import check_file, build_model
 
 
 def parse_args():
@@ -28,11 +13,6 @@ def parse_args():
     args = parser.parse_args()
 
     return args
-
-
-def build_model(model: str, model_cfg: dict, **kwargs):
-    module = importlib.import_module(f"segdet.models.{model}.model")
-    return module.Model(**model_cfg, **kwargs)
 
 
 def main(args):

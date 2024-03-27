@@ -39,23 +39,22 @@ model = dict(
         debug=False,
     ),
     test_cfg=dict(
-        nms_pre=30000,
+        nms_pre=1000,
         min_bbox_size=0,
         score_thr=0.001,
         nms=dict(type="nms", iou_threshold=0.65),
-        max_per_img=300,
+        max_per_img=100,
     ),
 )
 
-# visualizer = dict(
-    # type="Visualizer",
-    # vis_backends=[
-    #     dict(type="LocalVisBackend"),
-    #     dict(
-    #         type="WandbVisBackend",
-    #         init_kwargs=dict(
-    #             project="rtmdet", entity="gif-7010"),
-    #     ),
-    # ],
-# )
+visualizer = dict(
+    type="Visualizer",
+    vis_backends=[
+        dict(type="LocalVisBackend"),
+        dict(
+            type="WandbVisBackend",
+            init_kwargs=dict(project="rtmdet", entity="gif-7010"),
+        ),
+    ],
+)
 work_dir = "../logs/rtmdet"

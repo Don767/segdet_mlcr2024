@@ -12,20 +12,7 @@ optimizer = "AdamW"
 #### Data ####
 data_root = "data/coco/"
 dataset_type = "CocoDataset"
-img_scales = [
-    (
-        640,
-        640,
-    ),
-    (
-        320,
-        320,
-    ),
-    (
-        960,
-        960,
-    ),
-]
+img_size = (640, 640)
 load_from = None
 data_preprocessor = dict(
     type="DetDataPreprocessor",
@@ -85,10 +72,7 @@ train_pipeline = [
     dict(backend_args=None, type="LoadImageFromFile"),
     dict(type="LoadAnnotations", with_bbox=True),
     dict(
-        img_scale=(
-            640,
-            640,
-        ),
+        img_scale=img_size,
         max_cached_images=20,
         pad_val=114.0,
         random_pop=False,
@@ -107,10 +91,7 @@ train_pipeline = [
         type="RandomResize",
     ),
     dict(
-        crop_size=(
-            640,
-            640,
-        ),
+        crop_size=img_size,
         type="RandomCrop",
     ),
     dict(type="YOLOXHSVRandomAug"),
@@ -123,17 +104,11 @@ train_pipeline = [
                 114,
             )
         ),
-        size=(
-            640,
-            640,
-        ),
+        size=img_size,
         type="Pad",
     ),
     dict(
-        img_scale=(
-            640,
-            640,
-        ),
+        img_scale=img_size,
         max_cached_images=10,
         pad_val=(
             114,
@@ -159,17 +134,11 @@ train_pipeline_stage2 = [
             0.5,
             2.0,
         ),
-        scale=(
-            640,
-            640,
-        ),
+        scale=img_size,
         type="RandomResize",
     ),
     dict(
-        crop_size=(
-            640,
-            640,
-        ),
+        crop_size=img_size,
         type="RandomCrop",
     ),
     dict(type="YOLOXHSVRandomAug"),
@@ -182,10 +151,7 @@ train_pipeline_stage2 = [
                 114,
             )
         ),
-        size=(
-            640,
-            640,
-        ),
+        size=img_size,
         type="Pad",
     ),
     dict(type="PackDetInputs"),
@@ -194,10 +160,7 @@ val_pipeline = [
     dict(backend_args=None, type="LoadImageFromFile"),
     dict(
         keep_ratio=True,
-        scale=(
-            640,
-            640,
-        ),
+        scale=img_size,
         type="Resize",
     ),
     dict(
@@ -208,10 +171,7 @@ val_pipeline = [
                 114,
             )
         ),
-        size=(
-            640,
-            640,
-        ),
+        size=img_size,
         type="Pad",
     ),
     dict(type="LoadAnnotations", with_bbox=True),
@@ -226,14 +186,13 @@ val_pipeline = [
         type="PackDetInputs",
     ),
 ]
-test_pipeline = [
-    dict(backend_args=None, type="LoadImageFromFile"),
+test_pipeline = val_pipeline
+
+inference_pipeline = [
+    dict(backend_args=backend_args, type="LoadImageFromFile"),
     dict(
         keep_ratio=True,
-        scale=(
-            640,
-            640,
-        ),
+        scale=img_size,
         type="Resize",
     ),
     dict(
@@ -244,24 +203,11 @@ test_pipeline = [
                 114,
             )
         ),
-        size=(
-            640,
-            640,
-        ),
+        size=img_size,
         type="Pad",
     ),
-    dict(type="LoadAnnotations", with_bbox=True),
-    dict(
-        meta_keys=(
-            "img_id",
-            "img_path",
-            "ori_shape",
-            "img_shape",
-            "scale_factor",
-        ),
-        type="PackDetInputs",
-    ),
 ]
+
 
 train_dataloader = dict(
     batch_sampler=None,
@@ -339,10 +285,7 @@ tta_pipeline = [
             [
                 dict(
                     keep_ratio=True,
-                    scale=(
-                        640,
-                        640,
-                    ),
+                    scale=img_size,
                     type="Resize",
                 ),
                 dict(
