@@ -18,26 +18,24 @@ import torch.utils.data
 import yaml
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
+from utils import attempt_load, check_file, check_dataset, check_img_size, labels_to_class_weights, \
+    increment_path, intersect_dicts, one_cycle, select_device
+from model import Model
+
 import test  # import test.py to get mAP after each epoch
-from models.experimental import attempt_load
-from models.yolo import Model
-from utils.autoanchor import check_anchors
 from utils.datasets import create_dataloader
-from utils.general import labels_to_class_weights, increment_path, labels_to_image_weights, init_seeds, \
-    fitness, strip_optimizer, get_latest_run, check_dataset, check_file, check_git_status, check_img_size, \
-    check_requirements, print_mutation, set_logging, one_cycle, colorstr
+from utils.general import strip_optimizer
 from utils.google_utils import attempt_download
-from utils.loss import ComputeLoss, ComputeLossOTA
-from utils.torch_utils import ModelEMA, select_device, intersect_dicts, is_parallel
+from utils.loss import ComputeLoss, ComputeLossOTA #TODO - SHOULD USE HERE THE SAME AS YOLOV7 FOR MATCHING RESULTS
+
 
 logger = logging.getLogger(__name__)
 
 
 def train(hyp, opt, device):
-    logger.info(colorstr('hyperparameters: ') + ', '.join(f'{k}={v}' for k, v in hyp.items()))
+    logger.info('hyperparameters: ' + ', '.join(f'{k}={v}' for k, v in hyp.items()))
     save_dir, epochs, batch_size, total_batch_size, weights, freeze = \
         Path(opt.save_dir), opt.epochs, opt.batch_size, opt.total_batch_size, opt.weights, opt.freeze
 
@@ -57,7 +55,11 @@ def train(hyp, opt, device):
 
     # Configure
     cuda = device.type != 'cpu'
-    init_seeds(1)
+    # TODO - MAYBE ADD SEED MANIPULATION CAPABILITIES?
+    random.seed(1)
+    np.random.seed(1)
+    torch.manual_seed(1)
+
     with open(opt.data) as f:
         data_dict = yaml.load(f, Loader=yaml.SafeLoader)  # data dict
     is_coco = opt.data.endswith('coco.yaml')
@@ -220,7 +222,7 @@ def train(hyp, opt, device):
     dataloader, dataset = create_dataloader(train_path, imgsz, batch_size, gs, opt,
                                             hyp=hyp, augment=True, cache=opt.cache_images, rect=opt.rect, rank=-1,
                                             world_size=opt.world_size, workers=opt.workers,
-                                            image_weights=opt.image_weights, quad=opt.quad, prefix=colorstr('train: '))
+                                            image_weights=opt.image_weights, quad=opt.quad, prefix='train: ')
     mlc = np.concatenate(dataset.labels, 0)[:, 0].max()  # max label class
     nb = len(dataloader)  # number of batches
     assert mlc < nc, 'Label class %g exceeds nc=%g in %s. Possible class labels are 0-%g' % (mlc, nc, opt.data, nc - 1)
@@ -229,7 +231,7 @@ def train(hyp, opt, device):
     testloader = create_dataloader(test_path, imgsz_test, batch_size * 2, gs, opt,  # testloader
                                     hyp=hyp, cache=opt.cache_images and not opt.notest, rect=True, rank=-1,
                                     world_size=opt.world_size, workers=opt.workers,
-                                    pad=0.5, prefix=colorstr('val: '))[0]
+                                    pad=0.5, prefix='val: ')[0]
 
     labels = np.concatenate(dataset.labels, 0)
     c = torch.tensor(labels[:, 0])  # classes
@@ -359,7 +361,9 @@ def train(hyp, opt, device):
 
 
             # Update best mAP
-            fi = fitness(np.array(results).reshape(1, -1))  # weighted combination of [P, R, mAP@.5, mAP@.5-.95]
+            fitness_weights = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+            (np.array(results).reshape(1, -1)[:, :4] * fitness_weights).sum(1)
+
             if fi > best_fitness:
                 best_fitness = fi
 
@@ -367,7 +371,8 @@ def train(hyp, opt, device):
             ckpt = {'epoch': epoch,
                     'best_fitness': best_fitness,
                     'training_results': results_file.read_text(),
-                    'model': deepcopy(model.module if is_parallel(model) else model).half(),
+                    'model': deepcopy(model.module if type(model) in (nn.parallel.DataParallel, \
+                        nn.parallel.DistributedDataParallel) else model).half(),
                     'ema': deepcopy(ema.ema).half(),
                     'updates': ema.updates,
                     'optimizer': optimizer.state_dict()}
@@ -478,6 +483,4 @@ if __name__ == '__main__':
 
     # Train
     logger.info(opt)
-    prefix = colorstr('tensorboard: ')
-    logger.info(f"{prefix}Start with 'tensorboard --logdir {opt.project}', view at http://localhost:6006/")
     train(hyp, opt, device)

@@ -4,12 +4,30 @@
 
 import glob
 import math
+import numpy as np
 import os
 import time
 from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+
+def attempt_load(weights, map_location=None):
+    # Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a
+    model = Ensemble()
+    for w in weights if isinstance(weights, list) else [weights]:
+        ckpt = torch.load(w, map_location=map_location)  # load
+        model.append(ckpt['model'].float().fuse().eval())
+    
+    
+    if len(model) == 1:
+        return model[-1]  # return model
+    else:
+        print('Ensemble created with %s\n' % weights)
+        for k in ['names', 'stride']:
+            setattr(model, k, getattr(model[-1], k))
+        return model  # return ensemble
 
 
 def check_anchor_order(m):
@@ -21,6 +39,14 @@ def check_anchor_order(m):
         print('Reversing anchor order')
         m.anchors[:] = m.anchors.flip(0)
         m.anchor_grid[:] = m.anchor_grid.flip(0)
+
+
+def check_img_size(img_size, s=32):
+    # Verify img_size is a multiple of stride s
+    new_size = math.ceil(img_size / int(s)) * int(s)
+    if new_size != img_size:
+        print('WARNING: --img-size %g must be multiple of max stride %g, updating to %g' % (img_size, s, new_size))
+    return new_size
 
 
 def check_file(file):
@@ -54,6 +80,20 @@ def check_dataset(dict):
                 raise Exception('Dataset not found.')
 
 
+class Ensemble(nn.ModuleList):
+    # Ensemble of models
+    def __init__(self):
+        super(Ensemble, self).__init__()
+
+    def forward(self, x, augment=False):
+        y = []
+        for module in self:
+            y.append(module(x, augment)[0])
+        y = torch.cat(y, 1)  # nms ensemble
+        return y, None  # inference, train output
+
+
+
 def fuse_conv_and_bn(conv, bn):
     # Fuse convolution and batchnorm layers https://tehnokv.com/posts/fusing-batchnorm-and-conv/
     fusedconv = nn.Conv2d(conv.in_channels,
@@ -77,6 +117,34 @@ def fuse_conv_and_bn(conv, bn):
     return fusedconv
 
 
+def labels_to_class_weights(labels, nc=80):
+    # Get class weights (inverse frequency) from training labels
+    if labels[0] is None:  # no labels loaded
+        return torch.Tensor()
+
+    labels = np.concatenate(labels, 0)  # labels.shape = (866643, 5) for COCO
+    classes = labels[:, 0].astype(np.int32)  # labels = [class xywh]
+    weights = np.bincount(classes, minlength=nc)  # occurrences per class
+
+    weights[weights == 0] = 1  # replace empty bins with 1
+    weights = 1 / weights  # number of targets per class
+    weights /= weights.sum()  # normalize
+    return torch.from_numpy(weights)
+
+
+def increment_path(path, exist_ok=True, sep=''):
+    # Increment path, i.e. runs/exp --> runs/exp{sep}0, runs/exp{sep}1 etc.
+    path = Path(path)  # os-agnostic
+    if (path.exists() and exist_ok) or (not path.exists()):
+        return str(path)
+    else:
+        dirs = glob.glob(f"{path}{sep}*")  # similar paths
+        matches = [re.search(rf"%s{sep}(\d+)" % path.stem, d) for d in dirs]
+        i = [int(m.groups()[0]) for m in matches if m]  # indices
+        n = max(i) + 1 if i else 2  # increment number
+        return f"{path}{sep}{n}"  # update path
+
+
 def initialize_weights(model):
     for m in model.modules():
         t = type(m)
@@ -89,9 +157,19 @@ def initialize_weights(model):
             m.inplace = True
 
 
+def intersect_dicts(da, db, exclude=()):
+    # Dictionary intersection of matching keys and shapes, omitting 'exclude' keys, using da values
+    return {k: v for k, v in da.items() if k in db and not any(x in k for x in exclude) and v.shape == db[k].shape}
+
+
 def make_divisible(x, divisor):
     # Returns x evenly divisible by divisor
     return math.ceil(x / divisor) * divisor
+
+
+def one_cycle(y1=0.0, y2=1.0, steps=100):
+    # lambda function for sinusoidal ramp from y1 to y2
+    return lambda x: ((1 - math.cos(x * math.pi / steps)) / 2) * (y2 - y1) + y1
 
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):  # img(16,3,256,416)
