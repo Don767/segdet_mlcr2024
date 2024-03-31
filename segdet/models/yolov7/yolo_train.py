@@ -24,14 +24,31 @@ from utils import attempt_load, check_file, check_dataset, check_img_size, label
     increment_path, intersect_dicts, one_cycle, select_device
 from model import Model
 
-import test  # import test.py to get mAP after each epoch
-from utils.datasets import create_dataloader
-from utils.general import strip_optimizer
-from utils.google_utils import attempt_download
-from utils.loss import ComputeLoss, ComputeLossOTA #TODO - SHOULD USE HERE THE SAME AS YOLOV7 FOR MATCHING RESULTS
+from yolo_test import test
+# COULD GET SELF-MADE DATALOADER TO WORK WITH ARCHITECTURE, USING ORIGINALS FOR NOW
+from yolo_dataloader import attempt_download, create_dataloader
+# LOSSES USED BY ORIGINAL PAPER ARE ESSENTIAL FOR PERFORMANCES IN THE PAPER, USING AS SUCH FOR NOW
+from yolo_loss import ComputeLoss, ComputeLossOTA
 
 
 logger = logging.getLogger(__name__)
+
+
+def strip_optimizer(f='best.pt', s=''):
+    x = torch.load(f, map_location=torch.device('cpu'))
+    for k in 'optimizer', 'training_results', 'wandb_id', 'ema', 'updates':  # keys
+        x[k] = None
+
+    x['epoch'] = -1
+    x['model'].half()  # to FP16
+
+    for p in x['model'].parameters():
+        p.requires_grad = False
+
+    torch.save(x, s or f)
+    mb = os.path.getsize(s or f) / 1E6  # filesize
+
+    print(f"Optimizer stripped from {f},{(' saved as %s,' % s) if s else ''}")
 
 
 def train(hyp, opt, device):
@@ -220,16 +237,16 @@ def train(hyp, opt, device):
 
     # Trainloader
     dataloader, dataset = create_dataloader(train_path, imgsz, batch_size, gs, opt,
-                                            hyp=hyp, augment=True, cache=opt.cache_images, rect=opt.rect, rank=-1,
+                                            hyp=hyp, augment=True, cache=opt.cache_images, rect=opt.rect,
                                             world_size=opt.world_size, workers=opt.workers,
-                                            image_weights=opt.image_weights, quad=opt.quad, prefix='train: ')
+                                            image_weights=opt.image_weights, prefix='train: ')
     mlc = np.concatenate(dataset.labels, 0)[:, 0].max()  # max label class
     nb = len(dataloader)  # number of batches
     assert mlc < nc, 'Label class %g exceeds nc=%g in %s. Possible class labels are 0-%g' % (mlc, nc, opt.data, nc - 1)
 
     # Process 0
     testloader = create_dataloader(test_path, imgsz_test, batch_size * 2, gs, opt,  # testloader
-                                    hyp=hyp, cache=opt.cache_images and not opt.notest, rect=True, rank=-1,
+                                    hyp=hyp, cache=opt.cache_images and not opt.notest, rect=True,
                                     world_size=opt.world_size, workers=opt.workers,
                                     pad=0.5, prefix='val: ')[0]
 
@@ -286,8 +303,6 @@ def train(hyp, opt, device):
                 # model.gr = np.interp(ni, xi, [0.0, 1.0])  # iou loss ratio (obj_loss = 1.0 or iou)
                 accumulate = max(1, np.interp(ni, xi, [1, nbs / total_batch_size]).round())
                 for j, x in enumerate(optimizer.param_groups):
-                    # bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
-                    x['lr'] = np.interp(ni, xi, [hyp['warmup_bias_lr'] if j == 2 else 0.0, x['initial_lr'] * lf(epoch)])
                     if 'momentum' in x:
                         x['momentum'] = np.interp(ni, xi, [hyp['warmup_momentum'], hyp['momentum']])
 
@@ -328,24 +343,23 @@ def train(hyp, opt, device):
         # end epoch ----------------------------------------------------------------------------------------------------
 
         # Scheduler
-        lr = [x['lr'] for x in optimizer.param_groups]  # for tensorboard
         scheduler.step()
 
         # mAP
         ema.update_attr(model, include=['yaml', 'nc', 'hyp', 'gr', 'names', 'stride', 'class_weights'])
         final_epoch = epoch + 1 == epochs
         if not opt.notest or final_epoch:  # Calculate mAP
-            results, maps, times = test.test(data_dict,
-                                                batch_size=batch_size * 2,
-                                                imgsz=imgsz_test,
-                                                model=ema.ema,
-                                                single_cls=opt.single_cls,
-                                                dataloader=testloader,
-                                                save_dir=save_dir,
-                                                verbose=nc < 50 and final_epoch,
-                                                compute_loss=compute_loss,
-                                                is_coco=is_coco,
-                                                v5_metric=opt.v5_metric)
+            results, maps, times = test(data_dict,
+                                        batch_size=batch_size * 2,
+                                        imgsz=imgsz_test,
+                                        model=ema.ema,
+                                        single_cls=opt.single_cls,
+                                        dataloader=testloader,
+                                        save_dir=save_dir,
+                                        verbose=nc < 50 and final_epoch,
+                                        compute_loss=compute_loss,
+                                        is_coco=is_coco,
+                                        v5_metric=opt.v5_metric)
 
             # Write
             with open(results_file, 'a') as f:
@@ -399,18 +413,18 @@ def train(hyp, opt, device):
     logger.info('%g epochs completed in %.3f hours.\n' % (epoch - start_epoch + 1, (time.time() - t0) / 3600))
     if opt.data.endswith('coco.yaml') and nc == 80:  # if COCO
         for m in (last, best) if best.exists() else (last):  # speed, mAP tests
-            results, _, _ = test.test(opt.data,
-                                        batch_size=batch_size * 2,
-                                        imgsz=imgsz_test,
-                                        conf_thres=0.001,
-                                        iou_thres=0.7,
-                                        model=attempt_load(m, device).half(),
-                                        single_cls=opt.single_cls,
-                                        dataloader=testloader,
-                                        save_dir=save_dir,
-                                        save_json=True,
-                                        is_coco=is_coco,
-                                        v5_metric=opt.v5_metric)
+            results, _, _ = test(opt.data,
+                                batch_size=batch_size * 2,
+                                imgsz=imgsz_test,
+                                conf_thres=0.001,
+                                iou_thres=0.7,
+                                model=attempt_load(m, device).half(),
+                                single_cls=opt.single_cls,
+                                dataloader=testloader,
+                                save_dir=save_dir,
+                                save_json=True,
+                                is_coco=is_coco,
+                                v5_metric=opt.v5_metric)
 
         # Strip optimizers
         final = best if best.exists() else last  # final model

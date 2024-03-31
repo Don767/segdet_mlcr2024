@@ -7,7 +7,7 @@ import sys
 from copy import deepcopy
 import torch
 
-from models.common import *
+from common import *
 from utils import *
 
 sys.path.append('./')  # to run '$ python *.py' files in subdirectories
