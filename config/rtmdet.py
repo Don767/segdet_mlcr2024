@@ -51,10 +51,10 @@ visualizer = dict(
     type="Visualizer",
     vis_backends=[
         dict(type="LocalVisBackend"),
-        dict(
-            type="WandbVisBackend",
-            init_kwargs=dict(project="rtmdet", entity="gif-7010"),
-        ),
+        # dict(
+        #     type="WandbVisBackend",
+        #     init_kwargs=dict(project="rtmdet", entity="gif-7010"),
+        # ),
     ],
 )
 work_dir = "../logs/rtmdet"

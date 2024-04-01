@@ -4,7 +4,7 @@ from mmengine.config import Config
 from mmengine.runner import Runner
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 
-from .loading_utils import check_file, build_model
+from tools.loading_utils import check_file, build_model
 
 
 def parse_args():

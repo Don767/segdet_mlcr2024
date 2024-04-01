@@ -24,7 +24,6 @@ wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip \
   http://images.cocodataset.org/annotations/image_info_test2017.zip
   
 # Optional http://images.cocodataset.org/annotations/image_info_unlabeled2017.zip
-
 ```
 
 Then, you can extract the files and create the symlinks using the following commands:

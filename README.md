@@ -12,19 +12,11 @@ Python packages required (can be installed via pip or conda):
 
 Please refer to [doc/INSTALL.md](doc/INSTALL.md) for more details on how to install the required packages and dependencies.
 
-
-
 More details on how to install the required packages and dependencies can be found in [doc/INSTALL.md](doc/INSTALL.md).
 
 Details on how to download the datasets used in this project can be found in [doc/DATASETS.md](doc/DATASETS.md).
 
 >📋  Anything else required to set up the environment?
-
-Download INSERT HERE dataset:
-
-```python
-print("Hello World")
-```
 
 If desired, use the same seed used for our results below:
 

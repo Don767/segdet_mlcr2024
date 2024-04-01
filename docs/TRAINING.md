@@ -32,5 +32,6 @@ Install [willGuimont/sjm](https://github.com/willGuimont/sjm).
 
 ```shell
 sjm pull exx segdet_mlcr2024
-sjm run exx slurm_train.sh NAME=experiment_name CONFIG=configs/training/config_path.yml
+sjm run exx scripts/slurm_train.sh NAME=experiment_name CONFIG=configs/training/config_path.yml
+sjm ps exx
 ```

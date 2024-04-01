@@ -1,17 +1,25 @@
 #!/bin/bash
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=16
-#SBATCH --time=4-00:00
+#SBATCH --time=10-00:00
 #SBATCH --job-name=$NAME
 #SBATCH --output=%x-%j.out
 
 cd ~/segdet_mlcr2024
 docker build -t segdet .
+
+docker run --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES --rm --ipc host \
+  --mount type=bind,source=.,target=/app/ \
+  --mount type=bind,source=$(pwd)/data/coco,target=/app/data/coco \
+  --mount type=bind,source=/dev/shm,target=/dev/shm \
+  segdet python3 tools/train.py $CONFIG
+
 container_id=$(
-  docker run --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES --detach --rm --ipc host \
-    --mount type=bind,source=.,target=/code/ \
+  docker run --detach --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES --rm --ipc host \
+    --mount type=bind,source=.,target=/app/ \
+    --mount type=bind,source=$(pwd)/data/coco,target=/app/data/coco \
     --mount type=bind,source=/dev/shm,target=/dev/shm \
-    segdet python3 main.py $CONFIG
+    segdet python3 tools/train.py $CONFIG
 )
 
 stop_container() {
