@@ -17,6 +17,35 @@ lr_step_milestones = [x / max_iter_paper * max_iter for x in lr_step_milestones_
 warmup_iter = 250
 warmup_factor_paper = 0.001
 
+#### Model ####
+checkpoint = "https://download.openmmlab.com/mmdetection/v3.0/rtmdet/cspnext_rsb_pretrain/cspnext-s_imagenet_600e.pth"
+
+model = dict(
+    type="rtmdet",
+    data_preprocessor=data_preprocessor,
+    backbone=dict(),
+    neck=dict(
+    ),
+    bbox_head=dict(
+    ),
+    train_cfg=dict(
+    ),
+    test_cfg=dict(
+    ),
+)
+
+visualizer = dict(
+    type="Visualizer",
+    vis_backends=[
+        dict(type="LocalVisBackend"),
+        # dict(
+        #     type="WandbVisBackend",
+        #     init_kwargs=dict(project="rtmdet", entity="gif-7010"),
+        # ),
+    ],
+)
+work_dir = "../logs/vitdet"
+
 #### Data ####
 data_root = 'data/coco/'
 dataset_type = 'CocoDataset'
@@ -258,7 +287,6 @@ visualizer = dict(
 #### Settings ####
 resume = False
 default_scope = 'mmdet'
-work_dir = '../logs'
 backend_args = None
 env_cfg = dict(
     cudnn_benchmark=False,
