@@ -25,7 +25,7 @@ from utils import attempt_load, check_file, check_dataset, check_img_size, label
 from model import Model
 
 from yolo_test import test
-# COULD GET SELF-MADE DATALOADER TO WORK WITH ARCHITECTURE, USING ORIGINALS FOR NOW
+# COULDN'T GET SELF-MADE DATALOADER TO WORK WITH ARCHITECTURE, USING ORIGINALS FOR NOW
 from yolo_dataloader import attempt_download, create_dataloader
 # LOSSES USED BY ORIGINAL PAPER ARE ESSENTIAL FOR PERFORMANCES IN THE PAPER, USING AS SUCH FOR NOW
 from yolo_loss import ComputeLoss, ComputeLossOTA
