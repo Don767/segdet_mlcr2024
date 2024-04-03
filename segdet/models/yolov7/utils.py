@@ -185,14 +185,23 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):  # img(16,3,256,416)
         return F.pad(img, [0, w - s[1], 0, h - s[0]], value=0.447)  # value = imagenet mean
 
 
-def select_device(device=''):
+def select_device(device='', batch_size=None):
     # device = 'cpu' or '0' or '0,1,2,3'
     cpu = device.lower() == 'cpu'
     if cpu:
-        os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+        os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
         os.environ['CUDA_VISIBLE_DEVICES'] = device  # set environment variable
         assert torch.cuda.is_available(), f'CUDA unavailable, invalid device {device} requested'  # check availability
+
+    cuda = not cpu and torch.cuda.is_available()
+    if cuda:
+        n = torch.cuda.device_count()
+        if n > 1 and batch_size:  # check that batch_size is compatible with device_count
+            assert batch_size % n == 0, f'batch-size {batch_size} not multiple of GPU count {n}'
+
+
+    return torch.device('cuda:0' if cuda else 'cpu')
 
 
 def time_synchronized():
