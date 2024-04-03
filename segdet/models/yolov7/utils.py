@@ -185,9 +185,8 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):  # img(16,3,256,416)
         return F.pad(img, [0, w - s[1], 0, h - s[0]], value=0.447)  # value = imagenet mean
 
 
-def select_device(device='', batch_size=None):
+def select_device(device=''):
     # device = 'cpu' or '0' or '0,1,2,3'
-    s = f'YOLOR 🚀 {git_describe() or date_modified()} torch {torch.__version__} '  # string
     cpu = device.lower() == 'cpu'
     if cpu:
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
