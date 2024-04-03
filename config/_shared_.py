@@ -10,7 +10,7 @@ stage2_num_epochs = 20
 optimizer = "AdamW"
 
 #### Data ####
-data_root = "../coco/"
+data_root = "data/coco/"
 dataset_type = "CocoDataset"
 img_size = (640, 640)
 load_from = None

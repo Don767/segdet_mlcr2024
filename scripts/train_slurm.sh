@@ -13,7 +13,7 @@ docker run --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES --rm --ipc h
   --mount type=bind,source=.,target=/app/ \
   --mount type=bind,source=$(pwd)/data/coco,target=/app/data/coco \
   --mount type=bind,source=/dev/shm,target=/dev/shm \
-  segdet python3 tools/train.py $CONFIG
+  segdet bash -c "mim install mmcv==2.1.0 mmdet==3.3.0 && python3 tools/train.py $CONFIG"
 
 #container_id=$(
 #  docker run --detach --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES --rm --ipc host \

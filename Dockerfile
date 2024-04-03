@@ -11,8 +11,8 @@ RUN apt-get update \
 
 RUN python -m pip install --upgrade pip
 RUN pip install openmim
-RUN mim install mmcv==2.1.0
-RUN mim install mmdet==3.3.0
+#RUN mim install mmcv==2.1.0
+#RUN mim install mmdet==3.3.0
 
 WORKDIR /app
 COPY requirements.txt /app/requirements.txt
