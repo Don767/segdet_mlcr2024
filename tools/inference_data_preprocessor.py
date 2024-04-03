@@ -41,18 +41,19 @@ class InferenceDataPreProcessor(ImgDataPreprocessor):
         return torch.tensor(img.transpose(2, 0, 1))
 
     def _data_formatting(self, data: Union[np.ndarray, str], idx: int = 0):
-        if isinstance(self.first_step, LoadImageFromFile):
-            assert isinstance(
-                data, str
-            ), f"The registered first step: LoadImageFromFile requires a string path to the image, but got {type(data)} instead."
-            data = dict(img_path=data, img_id=idx)
-        elif isinstance(self.first_step, LoadImageFromNDArray):
+        if isinstance(self.first_step, LoadImageFromNDArray):
             assert isinstance(
                 data, np.ndarray
             ), f"The registered first step: LoadImageFromNDArray requires a np.ndarray, but got {type(data)} instead."
             data = dict(img=data, img_id=idx)
+        elif isinstance(self.first_step, LoadImageFromFile):
+            assert isinstance(
+                data, str
+            ), f"The registered first step: LoadImageFromFile requires a string path to the image, but got {type(data)} instead."
+            data = dict(img_path=data, img_id=idx)
         else:
             raise NotImplementedError(
                 f"First step of the pipeline must be one of {self.SUPPORTED_FIRST_STEP}"
             )
         return data
+
