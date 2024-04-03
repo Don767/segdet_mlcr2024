@@ -4,7 +4,7 @@ backend_args = None
 
 lr = 0.004
 weight_decay = 0.05
-batch_size_per_gpu = 80
+batch_size_per_gpu = 256  # 80
 epochs = 300
 stage2_num_epochs = 20
 optimizer = "AdamW"
@@ -21,7 +21,6 @@ data_preprocessor = dict(
     bgr_to_rgb=False,
     batch_augments=None,
 )
-
 
 #### Training/Evaluation ####
 metric = "mAP"
@@ -66,7 +65,6 @@ train_cfg = dict(
 )
 val_cfg = dict(type="ValLoop")
 test_cfg = dict(type="TestLoop")
-
 
 train_pipeline = [
     dict(backend_args=None, type="LoadImageFromFile"),
@@ -208,7 +206,6 @@ inference_pipeline = [
     ),
 ]
 
-
 train_dataloader = dict(
     batch_sampler=None,
     batch_size=batch_size_per_gpu,
@@ -346,7 +343,6 @@ tta_pipeline = [
         type="TestTimeAug",
     ),
 ]
-
 
 #### Hooks ####
 default_hooks = dict(
