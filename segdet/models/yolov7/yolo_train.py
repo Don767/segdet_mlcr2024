@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 def strip_optimizer(f='best.pt', s=''):
     x = torch.load(f, map_location=torch.device('cpu'))
-    for k in 'optimizer', 'training_results', 'wandb_id', 'ema', 'updates':  # keys
+    for k in 'optimizer', 'training_results', 'wandb_id', 'updates':  # keys
         x[k] = None
 
     x['epoch'] = -1
@@ -328,8 +328,6 @@ def train(hyp, opt, device):
                 scaler.step(optimizer)  # optimizer.step
                 scaler.update()
                 optimizer.zero_grad()
-                if ema:
-                    ema.update(model)
 
             # Print
             mloss = (mloss * i + loss_items) / (i + 1)  # update mean losses
@@ -344,67 +342,6 @@ def train(hyp, opt, device):
 
         # Scheduler
         scheduler.step()
-
-        # mAP
-        ema.update_attr(model, include=['yaml', 'nc', 'hyp', 'gr', 'names', 'stride', 'class_weights'])
-        final_epoch = epoch + 1 == epochs
-        if not opt.notest or final_epoch:  # Calculate mAP
-            results, maps, times = test(data_dict,
-                                        batch_size=batch_size * 2,
-                                        imgsz=imgsz_test,
-                                        model=ema.ema,
-                                        single_cls=opt.single_cls,
-                                        dataloader=testloader,
-                                        save_dir=save_dir,
-                                        verbose=nc < 50 and final_epoch,
-                                        compute_loss=compute_loss,
-                                        is_coco=is_coco,
-                                        v5_metric=opt.v5_metric)
-
-            # Write
-            with open(results_file, 'a') as f:
-                f.write(s + '%10.4g' * 7 % results + '\n')  # append metrics, val_loss
-            if len(opt.name) and opt.bucket:
-                os.system('gsutil cp %s gs://%s/results/results%s.txt' % (results_file, opt.bucket, opt.name))
-
-            # Log
-            tags = ['train/box_loss', 'train/obj_loss', 'train/cls_loss',  # train loss
-                    'metrics/precision', 'metrics/recall', 'metrics/mAP_0.5', 'metrics/mAP_0.5:0.95',
-                    'val/box_loss', 'val/obj_loss', 'val/cls_loss',  # val loss
-                    'x/lr0', 'x/lr1', 'x/lr2']  # params
-
-
-            # Update best mAP
-            fitness_weights = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-            (np.array(results).reshape(1, -1)[:, :4] * fitness_weights).sum(1)
-
-            if fi > best_fitness:
-                best_fitness = fi
-
-            # Save model
-            ckpt = {'epoch': epoch,
-                    'best_fitness': best_fitness,
-                    'training_results': results_file.read_text(),
-                    'model': deepcopy(model.module if type(model) in (nn.parallel.DataParallel, \
-                        nn.parallel.DistributedDataParallel) else model).half(),
-                    'ema': deepcopy(ema.ema).half(),
-                    'updates': ema.updates,
-                    'optimizer': optimizer.state_dict()}
-
-            # Save last, best and delete
-            torch.save(ckpt, last)
-            if best_fitness == fi:
-                torch.save(ckpt, best)
-            if (best_fitness == fi) and (epoch >= 200):
-                torch.save(ckpt, wdir / 'best_{:03d}.pt'.format(epoch))
-            if epoch == 0:
-                torch.save(ckpt, wdir / 'epoch_{:03d}.pt'.format(epoch))
-            elif ((epoch+1) % 25) == 0:
-                torch.save(ckpt, wdir / 'epoch_{:03d}.pt'.format(epoch))
-            elif epoch >= (epochs-5):
-                torch.save(ckpt, wdir / 'epoch_{:03d}.pt'.format(epoch))
-
-            del ckpt
 
         # end epoch ----------------------------------------------------------------------------------------------------
     # end training
