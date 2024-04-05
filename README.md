@@ -34,6 +34,14 @@ def set_seed(seed):
     os.environ["PYTHONHASHSEED"] = str(seed)
 ```
 
+### Important notice for docker
+
+Please make sure to have cv2 expected dependencies:
+
+```bash
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+``` 
+
 ## Training
 
 To train the model in the paper, run this command:
