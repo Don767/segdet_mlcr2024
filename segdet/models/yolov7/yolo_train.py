@@ -1,3 +1,7 @@
+# code: utf-8
+# author: Pierre-Luc Asselin
+# Based on: https://github.com/wongkinyiu/yolov7
+
 import argparse
 import logging
 import math

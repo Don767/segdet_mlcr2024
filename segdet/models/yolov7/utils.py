@@ -16,6 +16,7 @@ import torch.nn.functional as F
 
 def attempt_load(weights, map_location=None):
     # Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a
+    # Based on Yolov7's implementation of model ensembles
     model = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:
         ckpt = torch.load(w, map_location=map_location)  # load
@@ -33,6 +34,7 @@ def attempt_load(weights, map_location=None):
 
 def check_anchor_order(m):
     # Check anchor order against stride order for YOLO Detect() module m, and correct if necessary
+    # Necessary for anchor order convention used in Yolov7
     a = m.anchor_grid.prod(-1).view(-1)  # anchor area
     da = a[-1] - a[0]  # delta a
     ds = m.stride[-1] - m.stride[0]  # delta s
@@ -44,6 +46,7 @@ def check_anchor_order(m):
 
 def check_img_size(img_size, s=32):
     # Verify img_size is a multiple of stride s
+    # Simple utility
     new_size = math.ceil(img_size / int(s)) * int(s)
     if new_size != img_size:
         print('WARNING: --img-size %g must be multiple of max stride %g, updating to %g' % (img_size, s, new_size))
@@ -63,6 +66,7 @@ def check_file(file):
 
 def check_dataset(dict):
     # Download dataset if not found locally
+    # Based on useful Yolov7 freebie
     val, s = dict.get('val'), dict.get('download')
     if val and len(val):
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
@@ -83,6 +87,7 @@ def check_dataset(dict):
 
 class Ensemble(nn.ModuleList):
     # Ensemble of models
+    # Idea based on Yolov7 architecture
     def __init__(self):
         super(Ensemble, self).__init__()
 
@@ -96,7 +101,9 @@ class Ensemble(nn.ModuleList):
 
 
 def fuse_conv_and_bn(conv, bn):
-    # Fuse convolution and batchnorm layers https://tehnokv.com/posts/fusing-batchnorm-and-conv/
+    # Fuse convolution and batchnorm layers
+    # taken from https://tehnokv.com/posts/fusing-batchnorm-and-conv/
+    # (Same source as Yolov7's)
     fusedconv = nn.Conv2d(conv.in_channels,
                           conv.out_channels,
                           kernel_size=conv.kernel_size,
@@ -120,6 +127,7 @@ def fuse_conv_and_bn(conv, bn):
 
 def labels_to_class_weights(labels, nc=80):
     # Get class weights (inverse frequency) from training labels
+    # From Yolov7 original article
     if labels[0] is None:  # no labels loaded
         return torch.Tensor()
 
@@ -134,7 +142,7 @@ def labels_to_class_weights(labels, nc=80):
 
 
 def increment_path(path, exist_ok=True, sep=''):
-    # Increment path, i.e. runs/exp --> runs/exp{sep}0, runs/exp{sep}1 etc.
+    # Training save file increment path utility
     path = Path(path)  # os-agnostic
     if (path.exists() and exist_ok) or (not path.exists()):
         return str(path)
@@ -147,6 +155,8 @@ def increment_path(path, exist_ok=True, sep=''):
 
 
 def initialize_weights(model):
+    # Taken from Yolov7 original article
+    # Mainly for the specific Batch Normalization layer initialization
     for m in model.modules():
         t = type(m)
         if t is nn.Conv2d:
@@ -175,6 +185,7 @@ def one_cycle(y1=0.0, y2=1.0, steps=100):
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):  # img(16,3,256,416)
     # scales img(bs,3,y,x) by ratio constrained to gs-multiple
+    # From Yolov7 original article
     if ratio == 1.0:
         return img
     else:

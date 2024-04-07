@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class IDetect(nn.Module):
-    # IDetect as used in Yolov7's freebies
+    # IDetect from YOLOR (used in Yolov7)
     # Detect block integrating YOLOR implicit knowledge
     # Original from YOLOR: https://github.com/WongKinYiu/yolor
     stride = None  # strides computed during build
@@ -125,8 +125,8 @@ class IDetect(nn.Module):
 
 
 class Model(nn.Module):
-    # Yolov7 genealist Model generation/configuration class
-    # Can be used with a varieties of freebies
+    # Generalist Model generation/configuration class
+    # Based on and adapted from Yolov7 architecture
     # Original: https://github.com/wongkinyiu/yolov7
     def __init__(self, cfg='config/config_yolov7.yaml', ch=3, nc=None, anchors=None):  # model, input channels, number of classes
         super(Model, self).__init__()

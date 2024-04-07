@@ -1,4 +1,6 @@
-# Taken from original paper, since also tested on custom AP metric from Yolov5...
+# Taken from Yolov7 original paper, since original model
+# is tested on custom AP metric taken from Yolov5...
+# Original paper: https://github.com/WongKinYiu/yolov7
 import argparse
 import json
 import os

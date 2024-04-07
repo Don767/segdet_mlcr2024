@@ -1,18 +1,14 @@
-#TAKEN FROM ORIGINAL PAPER COULDN'T MAKE IT WORK OTHERWISE (STILL WORKING ON IT)
-# Dataset utils and dataloaders
+# Dataset utils and dataloaders taken from original Yolov7 paper
+# Original paper: https://github.com/WongKinYiu/yolov7
 import glob
 import logging
 import math
 import os
 import random
 import requests
-import shutil
-import subprocess
-import time
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from threading import Thread
 
 import cv2
 import numpy as np
@@ -21,11 +17,6 @@ import torch.nn.functional as F
 from PIL import Image, ExifTags
 from torch.utils.data import Dataset
 from tqdm import tqdm
-
-import pickle
-from copy import deepcopy
-from torchvision.utils import save_image
-from torchvision.ops import roi_pool, roi_align, ps_roi_pool, ps_roi_align
 
 
 # Parameters
@@ -983,9 +974,9 @@ def attempt_download(file, repo='WongKinYiu/yolov7'):
             assets = [x['name'] for x in response['assets']]  # release assets
             tag = response['tag_name']  # i.e. 'v1.0'
         except:  # fallback plan
-            assets = ['yolov7.pt', 'yolov7-tiny.pt', 'yolov7x.pt', 'yolov7-d6.pt', 'yolov7-e6.pt', 
+            assets = ['yolov7_training', 'yolov7.pt', 'yolov7-tiny.pt', 'yolov7x.pt', 'yolov7-d6.pt', 'yolov7-e6.pt', 
                       'yolov7-e6e.pt', 'yolov7-w6.pt']
-            tag = subprocess.check_output('git tag', shell=True).decode().split()[-1]
+            tag = 'v0.1'
 
         name = file.name
         if name in assets:
