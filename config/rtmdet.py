@@ -57,4 +57,4 @@ visualizer = dict(
         # ),
     ],
 )
-work_dir = "../logs/rtmdet"
+work_dir = "logs/rtmdet"
