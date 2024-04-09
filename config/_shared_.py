@@ -381,7 +381,7 @@ visualizer = dict(
 #### Settings ####
 resume = False
 default_scope = "mmdet"
-work_dir = "../logs"
+work_dir = "logs"
 backend_args = None
 env_cfg = dict(
     cudnn_benchmark=False,

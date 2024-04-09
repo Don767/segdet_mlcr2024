@@ -10,3 +10,4 @@ venv/
 tools/launch_training.sh
 *.pt
 *.pth
+/runs/
