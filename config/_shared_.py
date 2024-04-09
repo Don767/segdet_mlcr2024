@@ -4,7 +4,7 @@ backend_args = None
 
 lr = 0.004
 weight_decay = 0.05
-batch_size_per_gpu = 256  # 80
+batch_size_per_gpu = 128  # 80
 epochs = 300
 stage2_num_epochs = 20
 optimizer = "AdamW"
