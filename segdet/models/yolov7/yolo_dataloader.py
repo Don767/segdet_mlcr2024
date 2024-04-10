@@ -124,7 +124,7 @@ def create_dataloader(path, imgsz, batch_size, stride, opt, hyp=None, augment=Fa
                                     hyp=hyp,  # augmentation hyperparameters
                                     rect=rect,  # rectangular training
                                     cache_images=cache,
-                                    single_cls=opt.single_cls,
+                                    single_cls=False,
                                     stride=int(stride),
                                     pad=pad,
                                     image_weights=image_weights,
