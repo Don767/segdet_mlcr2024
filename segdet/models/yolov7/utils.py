@@ -55,9 +55,7 @@ def check_img_size(img_size, s=32):
 
 def check_file(file):
     # Search for file if not found
-    print(file)
-    print(Path(file).absolute())
-    if (f := Path(file).expanduser()).is_file() or file == '':
+    if Path(file).expanduser().is_file() or file == '':
         return file
     else:
         assert False

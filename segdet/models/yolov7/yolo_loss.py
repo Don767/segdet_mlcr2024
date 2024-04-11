@@ -1,5 +1,7 @@
 # Loss functions taken from Yolov7 original paper
 # Original paper: https://github.com/WongKinYiu/yolov7
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

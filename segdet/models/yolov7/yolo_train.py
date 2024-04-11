@@ -92,7 +92,7 @@ def train(hyp, opt, device):
 
     # Model
     pretrained = weights.endswith('.pt')
-    print(pretrained)
+    pretrained = False
     if pretrained:
         attempt_download(weights)  # download if not found locally
         ckpt = torch.load(weights, map_location=device)  # load checkpoint

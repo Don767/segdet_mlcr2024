@@ -35,4 +35,14 @@ done && wait
 
 # Create symlink
 ln -s /path/to/coco/ data/coco
+
+# For YOLOv7, you need to copy the data
+mkdir data/coco/images
+cp -r data/coco/train2017 data/coco/images/train2017
+cp -r data/coco/val2017 data/coco/images/val2017
+# And download the split files
+d='./data/' # unzip directory
+url=https://github.com/ultralytics/yolov5/releases/download/v1.0/
+f='coco2017labels-segments.zip' # or 'coco2017labels.zip', 68 MB
+wget "$url$f" && unzip -qo "$f" -d "$d" && rm "$f" & # download, unzip, remove in background
 ```
