@@ -162,8 +162,8 @@ class Model(nn.Module):
 
         # Init weights, biases
         initialize_weights(self)
-        self.info()
-        logger.info('')
+        # self.info()
+        # logger.info('')
 
     def forward(self, x, augment=False, profile=False):
         if augment:

@@ -55,9 +55,12 @@ def check_img_size(img_size, s=32):
 
 def check_file(file):
     # Search for file if not found
-    if Path(file).is_file() or file == '':
+    print(file)
+    print(Path(file).absolute())
+    if (f := Path(file).expanduser()).is_file() or file == '':
         return file
     else:
+        assert False
         files = glob.glob('./**/' + file, recursive=True)  # find file
         assert len(files), f'File Not Found: {file}'  # assert file was found
         assert len(files) == 1, f"Multiple files match '{file}', specify exact path: {files}"  # assert unique

@@ -5,7 +5,7 @@
 #SBATCH --job-name=$NAME
 #SBATCH --output=%x-%j.out
 
-cd ~/segdet_mlcr2024
+cd ~/segdet_mlcr2024 || exit
 docker build -t segdet .
 
 # To debug and get the logs directly in the slurm output
