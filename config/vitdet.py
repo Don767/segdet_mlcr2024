@@ -20,10 +20,20 @@ warmup_factor_paper = 0.001
 #### Model ####
 checkpoint = "https://download.openmmlab.com/mmdetection/v3.0/rtmdet/cspnext_rsb_pretrain/cspnext-s_imagenet_600e.pth"
 
+data_preprocessor = dict(
+    type="DetDataPreprocessor",
+    mean=[103.53, 116.28, 123.675],
+    std=[57.375, 57.12, 58.395],
+    bgr_to_rgb=False,
+    batch_augments=None,
+)
 model = dict(
-    type="rtmdet",
+    type="vitdet",
     data_preprocessor=data_preprocessor,
-    backbone=dict(),
+    backbone=dict(
+        type='vit_b_16',
+        pretrained=True,
+    ),
     neck=dict(
     ),
     bbox_head=dict(
