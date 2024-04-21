@@ -13,7 +13,7 @@ echo "export CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES && mim install mmcv==2.1
 chmod +x $NAME.sh
 
 # To debug and get the logs directly in the slurm output
-docker run --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES -e GPU=$CUDA_VISIBLE_DEVICES --rm --ipc host \
+docker run --gpus \"device=${CUDA_VISIBLE_DEVICES2}\" -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES -e GPU=$CUDA_VISIBLE_DEVICES --rm --ipc host \
   --mount type=bind,source=.,target=/app/ \
   --mount type=bind,source=$(pwd)/data/coco,target=/app/data/coco \
   --mount type=bind,source=/dev/shm,target=/dev/shm \
