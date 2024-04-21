@@ -1,5 +1,6 @@
 import argparse
 
+import torch.cuda
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 from mmengine.config import Config
 from mmengine.runner import Runner
@@ -10,6 +11,7 @@ from tools.loading_utils import check_file, build_model
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a detector")
     parser.add_argument("config", help="model config file path")
+    parser.add_argument("--gpu", type=int, default=0, help="GPU id for evaluation")
     args = parser.parse_args()
 
     return args
@@ -19,6 +21,9 @@ def main(args):
     setup_cache_size_limit_of_dynamo()
     config_file = check_file(args.config)  # check file
     cfg = Config.fromfile(config_file)
+
+    gpu = args.gpu
+    torch.cuda.set_device(gpu)
 
     model_cfg = cfg.get("model")
     runner = Runner(
