@@ -3,7 +3,7 @@ import os
 gpu = os.environ.get("CUDA_VISIBLE_DEVICES", None)
 print('a' * 100)
 print('USING GPU:', gpu)
-mmengine.device.get_device = lambda: f'cuda:{gpu}' if gpu else 'cuda'
+mmengine.device.get_device = lambda: f'cuda:{gpu.strip()}' if gpu else 'cuda'
 
 import argparse
 
@@ -18,7 +18,6 @@ from tools.loading_utils import check_file, build_model
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a detector")
     parser.add_argument("config", help="model config file path")
-    parser.add_argument("--gpu-ids", type=int, default=0, nargs="+", help="gpu ids")
     args = parser.parse_args()
 
     return args
@@ -27,9 +26,7 @@ def parse_args():
 def main(args):
     setup_cache_size_limit_of_dynamo()
     config_file = check_file(args.config)  # check file
-    gpu_ids = args.gpu_ids
     cfg = Config.fromfile(config_file)
-    cfg.gpu_ids = gpu_ids
 
     model_cfg = cfg.get("model")
     runner = Runner(

@@ -9,7 +9,7 @@ cd ~/segdet_mlcr2024 || exit
 docker build -t segdet .
 
 echo "Running on GPU $CUDA_VISIBLE_DEVICES"
-echo "export CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES && mim install mmcv==2.1.0 mmdet==3.3.0 && CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES python3 tools/train.py $CONFIG --gpu-ids $CUDA_VISIBLE_DEVICES" > $NAME.sh
+echo "export CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES && mim install mmcv==2.1.0 mmdet==3.3.0 && python3 tools/train.py $CONFIG" > $NAME.sh
 chmod +x $NAME.sh
 
 # To debug and get the logs directly in the slurm output
