@@ -1,6 +1,7 @@
 import copy
 from typing import List, Tuple, Union
 
+import torch.cuda
 import torchvision.models.vision_transformer
 from mmdet.registry import MODELS
 from mmdet.structures import SampleList
@@ -13,6 +14,8 @@ from segdet.models.vitdet.custom_two_stage_detector import CustomTwoStageDetecto
 from segdet.models.vitdet.vitdet_neck import VitDetNeck
 from segdet.scheduler.linear_warmup_scheduler import LinearWarmupScheduler
 
+LinearWarmupScheduler
+torch.cuda.set_device(3)
 pretrained_vit = {
     "vit_b_16": torchvision.models.vit_b_16,
     "vit_b_32": torchvision.models.vit_b_32,
@@ -28,7 +31,6 @@ pretrained_vit_weights = {
     "vit_l_32": torchvision.models.vision_transformer.ViT_L_32_Weights,
     "vit_h_14": torchvision.models.vision_transformer.ViT_H_14_Weights,
 }
-LinearWarmupScheduler
 
 
 class Model(CustomTwoStageDetector):
