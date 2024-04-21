@@ -1,10 +1,15 @@
+import mmengine.device
+import os
+mmengine.device.get_device = lambda: f'cuda:{os.environ["CUDA_VISIBLE_DEVICES"]}'
+
 import argparse
 
+from mmdet.utils import setup_cache_size_limit_of_dynamo
 from mmengine.config import Config
 from mmengine.runner import Runner
-from mmdet.utils import setup_cache_size_limit_of_dynamo
 
 from tools.loading_utils import check_file, build_model
+
 
 
 def parse_args():
