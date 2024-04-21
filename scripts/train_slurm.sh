@@ -8,12 +8,13 @@
 cd ~/segdet_mlcr2024 || exit
 docker build -t segdet .
 
+echo "Running on GPU $CUDA_VISIBLE_DEVICES"
 # To debug and get the logs directly in the slurm output
-docker run --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES --rm --ipc host \
+docker run --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES -e GPUS=$CUDA_VISIBLE_DEVICES --rm --ipc host \
   --mount type=bind,source=.,target=/app/ \
   --mount type=bind,source=$(pwd)/data/coco,target=/app/data/coco \
   --mount type=bind,source=/dev/shm,target=/dev/shm \
-  segdet bash -c "mim install mmcv==2.1.0 mmdet==3.3.0 && python3 tools/train.py $CONFIG"
+  segdet bash -c "mim install mmcv==2.1.0 mmdet==3.3.0 && CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES python3 tools/train.py $CONFIG"
 
 #container_id=$(
 #  docker run --detach --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES --rm --ipc host \
