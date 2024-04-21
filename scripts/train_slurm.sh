@@ -10,7 +10,7 @@ docker build -t segdet .
 
 echo "Running on GPU $CUDA_VISIBLE_DEVICES"
 # To debug and get the logs directly in the slurm output
-docker run --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES -e GPUS=$CUDA_VISIBLE_DEVICES --rm --ipc host \
+docker run --gpus all -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES -e GPU=$CUDA_VISIBLE_DEVICES --rm --ipc host \
   --mount type=bind,source=.,target=/app/ \
   --mount type=bind,source=$(pwd)/data/coco,target=/app/data/coco \
   --mount type=bind,source=/dev/shm,target=/dev/shm \
