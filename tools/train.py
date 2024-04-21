@@ -1,12 +1,3 @@
-import mmengine.device
-import os
-gpu = os.environ.get("CUDA_VISIBLE_DEVICES", None)
-print('a' * 100)
-print('USING GPU:', gpu)
-mmengine.device.get_device = lambda: f'cuda:{gpu.strip()}' if gpu else 'cuda'
-print('b' * 100)
-print('USING DEVICE:', mmengine.device.get_device())
-
 import argparse
 
 from mmdet.utils import setup_cache_size_limit_of_dynamo
@@ -14,7 +5,6 @@ from mmengine.config import Config
 from mmengine.runner import Runner
 
 from tools.loading_utils import check_file, build_model
-
 
 
 def parse_args():
