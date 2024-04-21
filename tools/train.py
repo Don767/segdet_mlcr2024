@@ -1,6 +1,6 @@
 import mmengine.device
 import os
-mmengine.device.get_device = lambda: f'cuda:{os.environ["CUDA_VISIBLE_DEVICES"]}'
+mmengine.device.get_device = lambda: f'cuda:{os.environ["CUDA_VISIBLE_DEVICES"].strip()}'
 
 import argparse
 
