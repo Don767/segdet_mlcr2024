@@ -15,7 +15,7 @@ from segdet.models.vitdet.vitdet_neck import VitDetNeck
 from segdet.scheduler.linear_warmup_scheduler import LinearWarmupScheduler
 
 LinearWarmupScheduler
-torch.cuda.set_device(3)
+
 pretrained_vit = {
     "vit_b_16": torchvision.models.vit_b_16,
     "vit_b_32": torchvision.models.vit_b_32,
