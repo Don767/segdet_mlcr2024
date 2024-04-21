@@ -4,6 +4,8 @@ gpu = os.environ.get("CUDA_VISIBLE_DEVICES", None)
 print('a' * 100)
 print('USING GPU:', gpu)
 mmengine.device.get_device = lambda: f'cuda:{gpu.strip()}' if gpu else 'cuda'
+print('b' * 100)
+print('USING DEVICE:', mmengine.device.get_device())
 
 import argparse
 
