@@ -284,6 +284,9 @@ def train(hyp, opt, device):
                 f'Logging results to {save_dir}\n'
                 f'Starting training for {epochs} epochs...')
     torch.save(model, wdir / 'init.pt')
+
+    # TODO remove this after we are sure the model is saving
+    epochs = 1
     for epoch in range(start_epoch, epochs):  # epoch ------------------------------------------------------------------
         model.train()
 
