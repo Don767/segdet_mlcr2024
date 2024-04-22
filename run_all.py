@@ -63,6 +63,15 @@ def download_weights(args):
         print(f'Failed to download {model} {e}')
 
 
+def test_network(path, conf, pth, gpu):
+    conf_path = pathlib.Path(path) / conf
+    pth_path = pathlib.Path('data/mmdetection_weights') / conf.replace('.py', '.pth')
+    print(f'python tools/speed_benchmark.py --conf {conf_path} --weights {pth_path} --gpu {gpu}')
+
+def test_process(jobs, gpu):
+    for job in jobs:
+        test_network(*job, gpu)
+
 if __name__ == '__main__':
     repo_dir = pathlib.Path('data/mmdetection')
 
@@ -84,9 +93,11 @@ if __name__ == '__main__':
         it = tqdm(p.imap(download_weights, [(r, out_dir) for r in to_run]), total=len(to_run))
         collections.deque(it, maxlen=0)
 
-    for (path, conf, pth) in to_run:
-        conf_path = pathlib.Path(path) / conf
-        pth_path = pathlib.Path('data/mmdetection_weights') / conf.replace('.py', '.pth')
-        assert conf_path.exists(), conf_path
-        assert pth_path.exists(), pth_path
-        print(f'python tools/speed_benchmark.py --conf {conf_path} --weights {pth_path} --gpu 0')
+    processes = []
+    for i in range(4):
+        process = mp.Process(target=test_process, args=(to_run[i::4], i))
+        processes.append(process)
+        process.start()
+
+    for process in processes:
+        process.join()
