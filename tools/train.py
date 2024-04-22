@@ -7,7 +7,6 @@ from mmengine.runner import Runner
 
 from tools.loading_utils import check_file, build_model
 
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a detector")
     parser.add_argument("config", help="model config file path")

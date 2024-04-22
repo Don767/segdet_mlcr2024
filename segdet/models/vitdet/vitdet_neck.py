@@ -2,8 +2,6 @@ from mmdet.utils import OptConfigType
 from torch import nn, Tensor
 import einops as ein
 
-from segdet.models.vitdet.utils import PrintShape
-
 
 class VitDetNeck(nn.Module):
     def __init__(self, config: OptConfigType):

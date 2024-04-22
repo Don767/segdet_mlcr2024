@@ -8,9 +8,7 @@ import math
 import os
 import random
 import time
-from copy import deepcopy
 from pathlib import Path
-from threading import Thread
 
 import numpy as np
 import torch.distributed as dist
@@ -21,19 +19,16 @@ import torch.optim.lr_scheduler as lr_scheduler
 import torch.utils.data
 import yaml
 from torch.cuda import amp
-from torch.nn.parallel import DistributedDataParallel as DDP
 from tqdm import tqdm
 
+from model import Model
 from utils import attempt_load, check_file, check_dataset, check_img_size, labels_to_class_weights, \
     increment_path, intersect_dicts, one_cycle, select_device
-from model import Model
-
-from yolo_test import test
 # COULDN'T GET SELF-MADE DATALOADER TO WORK WITH ARCHITECTURE, USING ORIGINALS FOR NOW
 from yolo_dataloader import attempt_download, create_dataloader
 # LOSSES USED BY ORIGINAL PAPER ARE ESSENTIAL FOR PERFORMANCES IN THE PAPER, USING AS SUCH FOR NOW
 from yolo_loss import ComputeLoss, ComputeLossOTA
-
+from yolo_test import test
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +55,6 @@ def train(hyp, opt, device):
     save_dir, epochs, batch_size, total_batch_size, weights, freeze = \
         Path(opt.save_dir), opt.epochs, opt.batch_size, opt.total_batch_size, opt.weights, opt.freeze
 
-
     # Directories
     wdir = save_dir / 'weights'
     wdir.mkdir(parents=True, exist_ok=True)  # make dir
@@ -84,7 +78,6 @@ def train(hyp, opt, device):
     with open(opt.data) as f:
         data_dict = yaml.load(f, Loader=yaml.SafeLoader)  # data dict
     is_coco = opt.data.endswith('coco.yaml')
-
 
     nc = int(data_dict['nc'])  # number of classes
     names = data_dict['names']  # class names
@@ -110,7 +103,8 @@ def train(hyp, opt, device):
     test_path = data_dict['val']
 
     # Freeze
-    freeze = [f'model.{x}.' for x in (freeze if len(freeze) > 1 else range(freeze[0]))]  # parameter names to freeze (full or partial)
+    freeze = [f'model.{x}.' for x in
+              (freeze if len(freeze) > 1 else range(freeze[0]))]  # parameter names to freeze (full or partial)
     for k, v in model.named_parameters():
         v.requires_grad = True  # train all layers
         if any(x in k for x in freeze):
@@ -132,60 +126,60 @@ def train(hyp, opt, device):
         elif hasattr(v, 'weight') and isinstance(v.weight, nn.Parameter):
             pg1.append(v.weight)  # apply decay
         if hasattr(v, 'im'):
-            if hasattr(v.im, 'implicit'):           
+            if hasattr(v.im, 'implicit'):
                 pg0.append(v.im.implicit)
             else:
                 for iv in v.im:
                     pg0.append(iv.implicit)
         if hasattr(v, 'imc'):
-            if hasattr(v.imc, 'implicit'):           
+            if hasattr(v.imc, 'implicit'):
                 pg0.append(v.imc.implicit)
             else:
                 for iv in v.imc:
                     pg0.append(iv.implicit)
         if hasattr(v, 'imb'):
-            if hasattr(v.imb, 'implicit'):           
+            if hasattr(v.imb, 'implicit'):
                 pg0.append(v.imb.implicit)
             else:
                 for iv in v.imb:
                     pg0.append(iv.implicit)
         if hasattr(v, 'imo'):
-            if hasattr(v.imo, 'implicit'):           
+            if hasattr(v.imo, 'implicit'):
                 pg0.append(v.imo.implicit)
             else:
                 for iv in v.imo:
                     pg0.append(iv.implicit)
         if hasattr(v, 'ia'):
-            if hasattr(v.ia, 'implicit'):           
+            if hasattr(v.ia, 'implicit'):
                 pg0.append(v.ia.implicit)
             else:
                 for iv in v.ia:
                     pg0.append(iv.implicit)
         if hasattr(v, 'attn'):
-            if hasattr(v.attn, 'logit_scale'):   
+            if hasattr(v.attn, 'logit_scale'):
                 pg0.append(v.attn.logit_scale)
-            if hasattr(v.attn, 'q_bias'):   
+            if hasattr(v.attn, 'q_bias'):
                 pg0.append(v.attn.q_bias)
-            if hasattr(v.attn, 'v_bias'):  
+            if hasattr(v.attn, 'v_bias'):
                 pg0.append(v.attn.v_bias)
-            if hasattr(v.attn, 'relative_position_bias_table'):  
+            if hasattr(v.attn, 'relative_position_bias_table'):
                 pg0.append(v.attn.relative_position_bias_table)
         if hasattr(v, 'rbr_dense'):
-            if hasattr(v.rbr_dense, 'weight_rbr_origin'):  
+            if hasattr(v.rbr_dense, 'weight_rbr_origin'):
                 pg0.append(v.rbr_dense.weight_rbr_origin)
-            if hasattr(v.rbr_dense, 'weight_rbr_avg_conv'): 
+            if hasattr(v.rbr_dense, 'weight_rbr_avg_conv'):
                 pg0.append(v.rbr_dense.weight_rbr_avg_conv)
-            if hasattr(v.rbr_dense, 'weight_rbr_pfir_conv'):  
+            if hasattr(v.rbr_dense, 'weight_rbr_pfir_conv'):
                 pg0.append(v.rbr_dense.weight_rbr_pfir_conv)
-            if hasattr(v.rbr_dense, 'weight_rbr_1x1_kxk_idconv1'): 
+            if hasattr(v.rbr_dense, 'weight_rbr_1x1_kxk_idconv1'):
                 pg0.append(v.rbr_dense.weight_rbr_1x1_kxk_idconv1)
-            if hasattr(v.rbr_dense, 'weight_rbr_1x1_kxk_conv2'):   
+            if hasattr(v.rbr_dense, 'weight_rbr_1x1_kxk_conv2'):
                 pg0.append(v.rbr_dense.weight_rbr_1x1_kxk_conv2)
-            if hasattr(v.rbr_dense, 'weight_rbr_gconv_dw'):   
+            if hasattr(v.rbr_dense, 'weight_rbr_gconv_dw'):
                 pg0.append(v.rbr_dense.weight_rbr_gconv_dw)
-            if hasattr(v.rbr_dense, 'weight_rbr_gconv_pw'):   
+            if hasattr(v.rbr_dense, 'weight_rbr_gconv_pw'):
                 pg0.append(v.rbr_dense.weight_rbr_gconv_pw)
-            if hasattr(v.rbr_dense, 'vector'):   
+            if hasattr(v.rbr_dense, 'vector'):
                 pg0.append(v.rbr_dense.vector)
 
     if opt.adam:
@@ -205,7 +199,6 @@ def train(hyp, opt, device):
     else:
         lf = one_cycle(1, hyp['lrf'], epochs)  # cosine 1->hyp['lrf']
     scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lf)
-
 
     # Resume
     start_epoch, best_fitness = 0, 0.0
@@ -239,7 +232,6 @@ def train(hyp, opt, device):
     if cuda and torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
 
-
     # Trainloader
     dataloader, dataset = create_dataloader(train_path, imgsz, batch_size, gs, opt,
                                             hyp=hyp, augment=True, cache=opt.cache_images, rect=opt.rect,
@@ -250,15 +242,14 @@ def train(hyp, opt, device):
 
     # Process 0
     testloader = create_dataloader(test_path, imgsz_test, batch_size * 2, gs, opt,  # testloader
-                                    hyp=hyp, cache=opt.cache_images and not opt.notest, rect=True,
-                                    world_size=opt.world_size, workers=opt.workers,
-                                    pad=0.5, prefix='val: ')[0]
+                                   hyp=hyp, cache=opt.cache_images and not opt.notest, rect=True,
+                                   world_size=opt.world_size, workers=opt.workers,
+                                   pad=0.5, prefix='val: ')[0]
 
     labels = np.concatenate(dataset.labels, 0)
     c = torch.tensor(labels[:, 0])  # classes
 
     model.half().float()  # pre-reduce anchor precision
-
 
     # Model parameters
     hyp['box'] *= 3. / nl  # scale to layers
@@ -284,11 +275,12 @@ def train(hyp, opt, device):
                 f'Logging results to {save_dir}\n'
                 f'Starting training for {epochs} epochs...')
     torch.save(model, wdir / 'init.pt')
+
+    # TODO remove this after we are sure the model is saving
     for epoch in range(start_epoch, epochs):  # epoch ------------------------------------------------------------------
         model.train()
 
         mloss = torch.zeros(4, device=device)  # mean losses
-
 
         pbar = enumerate(dataloader)
         logger.info(('\n' + '%10s' * 8) % ('Epoch', 'gpu_mem', 'box', 'obj', 'cls', 'total', 'labels', 'img_size'))
@@ -323,7 +315,6 @@ def train(hyp, opt, device):
                 pred = model(imgs)  # forward
                 loss, loss_items = compute_loss(pred, targets.to(device))  # loss scaled by batch_size
 
-
             # Backward
             scaler.scale(loss).backward()
 
@@ -340,8 +331,11 @@ def train(hyp, opt, device):
                 '%g/%g' % (epoch, epochs - 1), mem, *mloss, targets.shape[0], imgs.shape[-1])
             pbar.set_description(s)
 
-
             # end batch ------------------------------------------------------------------------------------------------
+        if epoch % 10 == 0:
+            print(f'Epoch {epoch} completed. Saving model to {wdir / f"epoch_{epoch}.pt"}')
+            torch.save(model, wdir / f'epoch_{epoch}.pt')
+            torch.save(model, last)
         # end epoch ----------------------------------------------------------------------------------------------------
 
         # Scheduler
@@ -353,18 +347,18 @@ def train(hyp, opt, device):
     # Test best.pt
     logger.info('%g epochs completed in %.3f hours.\n' % (epoch - start_epoch + 1, (time.time() - t0) / 3600))
     if opt.data.endswith('coco.yaml') and nc == 80:  # if COCO
-        for m in (last, best) if best.exists() else (last):  # speed, mAP tests
+        for m in (last, best) if best.exists() else (last,):  # speed, mAP tests
             results, _, _ = test(opt.data,
-                                batch_size=batch_size * 2,
-                                imgsz=imgsz_test,
-                                conf_thres=0.001,
-                                iou_thres=0.7,
-                                model=attempt_load(m, device).half(),
-                                dataloader=testloader,
-                                save_dir=save_dir,
-                                save_json=True,
-                                is_coco=is_coco,
-                                v5_metric=opt.v5_metric)
+                                 batch_size=batch_size * 2,
+                                 imgsz=imgsz_test,
+                                 conf_thres=0.001,
+                                 iou_thres=0.7,
+                                 model=attempt_load(m, device).half(),
+                                 dataloader=testloader,
+                                 save_dir=save_dir,
+                                 save_json=True,
+                                 is_coco=is_coco,
+                                 v5_metric=opt.v5_metric)
 
         # Strip optimizers
         final = best if best.exists() else last  # final model
@@ -399,14 +393,14 @@ if __name__ == '__main__':
     parser.add_argument('--workers', type=int, default=8, help='maximum number of dataloader workers')
     parser.add_argument('--project', default='runs/train', help='save to project/name')
     parser.add_argument('--name', default='exp', help='save to project/name')
-    parser.add_argument('--freeze', nargs='+', type=int, default=[0], help='Freeze layers: backbone of yolov7=50, first3=0 1 2')
+    parser.add_argument('--freeze', nargs='+', type=int, default=[0],
+                        help='Freeze layers: backbone of yolov7=50, first3=0 1 2')
     parser.add_argument('--linear-lr', action='store_true', help='linear LR')
     parser.add_argument('--v5-metric', action='store_true', help='assume maximum recall as 1.0 in AP calculation')
     opt = parser.parse_args()
 
     # Set DDP variables
     opt.world_size = int(os.environ['WORLD_SIZE']) if 'WORLD_SIZE' in os.environ else 1
-
 
     # opt.hyp = opt.hyp or ('hyp.finetune.yaml' if opt.weights else 'hyp.scratch.yaml')
     opt.data, opt.cfg, opt.hyp = check_file(opt.data), check_file(opt.cfg), check_file(opt.hyp)  # check files
@@ -417,7 +411,6 @@ if __name__ == '__main__':
     # DDP mode
     opt.total_batch_size = opt.batch_size
     device = select_device(opt.device, batch_size=opt.batch_size)
-
 
     # Hyperparameters
     with open(opt.hyp) as f:

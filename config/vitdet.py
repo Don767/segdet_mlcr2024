@@ -6,7 +6,7 @@ backend_args = None
 # https://github.com/facebookresearch/detectron2/blob/afe9eb920646102f7e6bf0cd2115841cea2aca13/projects/ViTDet/configs/COCO/mask_rcnn_vitdet_b_100ep.py#L24
 lr = 1.0e-4
 weight_decay = 0.01
-batch_size_per_gpu = 16
+batch_size_per_gpu = 24
 epochs = 100
 optimizer = 'AdamW'
 drop_rate_path = 0.1
@@ -492,7 +492,7 @@ tta_pipeline = [
 #### Hooks ####
 default_hooks = dict(
     checkpoint=dict(
-        interval=-1, type='CheckpointHook', save_best='coco/bbox_mAP_50', rule='greater'
+        interval=1, type='CheckpointHook', save_best='coco/bbox_mAP_50', rule='greater'
     ),
     logger=dict(interval=50, type='LoggerHook'),
     param_scheduler=dict(type='ParamSchedulerHook'),
@@ -500,6 +500,7 @@ default_hooks = dict(
     timer=dict(type='IterTimerHook'),
     visualization=dict(type='DetVisualizationHook'),
 )
+custom_hooks = []
 
 #### Viz ####
 visualizer = dict(

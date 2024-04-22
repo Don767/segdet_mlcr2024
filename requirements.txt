@@ -19,3 +19,5 @@ wandb==0.16.4
 git+https://github.com/willGuimont/pipeline
 transformers
 einops
+dill
+requests
