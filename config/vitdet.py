@@ -6,7 +6,7 @@ backend_args = None
 # https://github.com/facebookresearch/detectron2/blob/afe9eb920646102f7e6bf0cd2115841cea2aca13/projects/ViTDet/configs/COCO/mask_rcnn_vitdet_b_100ep.py#L24
 lr = 1.0e-4
 weight_decay = 0.01
-batch_size_per_gpu = 16
+batch_size_per_gpu = 24
 epochs = 100
 optimizer = 'AdamW'
 drop_rate_path = 0.1
