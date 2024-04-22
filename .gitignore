@@ -11,3 +11,5 @@ tools/launch_training.sh
 *.pt
 *.pth
 /runs/
+.vscode/launch.json
+*.csv
