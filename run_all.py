@@ -1,3 +1,4 @@
+import argparse
 import collections
 import multiprocessing as mp
 import os
@@ -68,11 +69,23 @@ def test_network(path, conf, pth, gpu):
     pth_path = pathlib.Path('data/mmdetection_weights') / conf.replace('.py', '.pth')
     print(f'python tools/speed_benchmark.py --conf {conf_path} --weights {pth_path} --gpu {gpu}')
 
+
 def test_process(jobs, gpu):
     for job in jobs:
         test_network(*job, gpu)
 
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Train a detector")
+    parser.add_argument("--gpus", type=int, nargs='+', default=[0, 1, 2, 3], help="GPU id for evaluation")
+    args = parser.parse_args()
+
+    return args
+
+
 if __name__ == '__main__':
+    args = parse_args()
+
     repo_dir = pathlib.Path('data/mmdetection')
 
     if not repo_dir.exists():
@@ -94,7 +107,9 @@ if __name__ == '__main__':
         collections.deque(it, maxlen=0)
 
     processes = []
-    for i in range(4):
+    gpus = args.gpus
+    print(f'Testing {len(to_run)} models on {len(gpus)} GPUs')
+    for i in gpus:
         process = mp.Process(target=test_process, args=(to_run[i::4], i))
         processes.append(process)
         process.start()
