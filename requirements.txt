@@ -18,3 +18,5 @@ tqdm>=4.41.0
 wandb==0.16.4
 transformers
 einops
+dill
+requests
