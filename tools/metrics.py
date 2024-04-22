@@ -58,7 +58,7 @@ def log_and_return_metrics(logger, times, title):
     return table
 
 
-def speed_benchmark(batch_size, config_file, weights, imgs_path, is_mmdet):
+def speed_benchmark(batch_size, config_file, weights, imgs_path, is_mmdet, half_precision=False):
     logger = MMLogger.get_current_instance()
     cfg = Config.fromfile(config_file)
 
@@ -93,14 +93,14 @@ def speed_benchmark(batch_size, config_file, weights, imgs_path, is_mmdet):
             ),
         ]
         runner = make_runner(cfg, is_mmdet, weights)
-        infer_model = InferenceWrapper(runner.model)
+        infer_model = InferenceWrapper(runner.model, half_precision=half_precision)
     else:
         model_cfg = cfg.get("model")
         infer_model = InferenceModel(
             model_name=model_cfg.pop("type"),
             model_cfg=model_cfg,
             checkpoint=weights,
-            half_precision=False,
+            half_precision=half_precision,
         )
     inf_data_preprocessor = InferenceDataPreProcessor(
         mean=cfg.get("data_preprocessor").get("mean"),

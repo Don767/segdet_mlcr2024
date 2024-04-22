@@ -43,12 +43,13 @@ class InferenceModel(nn.Module):
 
 
 class InferenceWrapper(nn.Module):
-    def __init__(self, model):
+    def __init__(self, model, half_precision: bool = True):
         super().__init__()
         self.model = model
+        self.half_precision = half_precision
 
     def forward(self, data: str):
-        with torch.cuda.amp.autocast(enabled=False):
+        with torch.cuda.amp.autocast(enabled=self.half_precision):
             inputs = data["inputs"].to('cuda')
             outputs = self.model.predict(inputs, data["data_samples"])
         return outputs
