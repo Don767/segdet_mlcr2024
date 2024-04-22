@@ -277,7 +277,6 @@ def train(hyp, opt, device):
     torch.save(model, wdir / 'init.pt')
 
     # TODO remove this after we are sure the model is saving
-    epochs = 1
     for epoch in range(start_epoch, epochs):  # epoch ------------------------------------------------------------------
         model.train()
 
@@ -336,6 +335,7 @@ def train(hyp, opt, device):
         if epoch % 10 == 0:
             print(f'Epoch {epoch} completed. Saving model to {wdir / f"epoch_{epoch}.pt"}')
             torch.save(model, wdir / f'epoch_{epoch}.pt')
+            torch.save(model, last)
         # end epoch ----------------------------------------------------------------------------------------------------
 
         # Scheduler
