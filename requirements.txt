@@ -16,5 +16,6 @@ torch
 torchvision
 tqdm>=4.41.0
 wandb==0.16.4
+git+https://github.com/willGuimont/pipeline
 transformers
 einops

@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-import numpy as np
 from scipy.optimize import linear_sum_assignment
 
 from boxes import generalized_box_iou, box_cxcywh_to_xyxy

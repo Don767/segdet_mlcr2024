@@ -1,101 +1,18 @@
-import math
-import PIL
-import numpy as np
 import torch
-import torchvision
-from torchvision import transforms
-from torchvision import tv_tensors
-from torchvision.transforms import v2
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import Subset
-from torch.utils.tensorboard import SummaryWriter
 
 import einops as ein
+from typing import List, Tuple, Union
 
-from hungarian_matcher import HungarianMatcher
 from transformer import Transformer
 from absolute_positional_encoding import *
 import boxes as box_ops
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import cv2
-DISPLAY_DATA = False
-NUMBER_OF_BATCHES_TO_SHOW = 5
-GLOBAL_STEP = 0
-
-transform_train = v2.Compose([
-    v2.RandomHorizontalFlip(p=0.5),
-    v2.RandomCrop(size=(480, 480), pad_if_needed=True),
-    v2.Resize(size=(480, 480)),
-    v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-])
-
-transform_val = v2.Compose([
-    v2.Resize(size=(480, 480)),
-    v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-])
-
-# Create a collate function to pad the images and the targets to the biggest image in the batch
-def collate_fn_train(batch):
-    img_list = []
-    target_list = []
-    bbox_list = []
-    for i, (img, targets) in enumerate(batch):
-        list_of_target_classes = []
-        list_of_target_bbox = []
-        if(len(targets) == 0):
-            list_of_target_bbox = torch.empty((0, 4))
-        for target in targets:
-            list_of_target_classes.append(target['category_id']-1)
-            bbox = target['bbox'].copy()
-            list_of_target_bbox.append(bbox)
-        boxes = tv_tensors.BoundingBoxes(list_of_target_bbox, format='XYWH', canvas_size=img.shape[-2:])
-        out_img, out_boxes = transform_train(img, boxes)
-        # Normalize the bounding boxes
-        for j in range(len(out_boxes)):
-            out_boxes[j][0] /= out_img.shape[2]
-            out_boxes[j][1] /= out_img.shape[1]
-            out_boxes[j][2] /= out_img.shape[2]
-            out_boxes[j][3] /= out_img.shape[1]
-        list_of_target_bbox = out_boxes
-        img_list.append(out_img)
-        list_of_target_classes = torch.tensor(list_of_target_classes, dtype=torch.int64)
-        list_of_target_bbox = list_of_target_bbox.reshape(len(list_of_target_bbox), 4)
-        target_list.append(list_of_target_classes)
-        bbox_list.append(list_of_target_bbox)
-    return (torch.utils.data._utils.collate.default_collate(img_list), (target_list, bbox_list))
-
-# Create a collate function to pad the images and the targets to the biggest image in the batch
-def collate_fn_val(batch):
-    img_list = []
-    target_list = []
-    bbox_list = []
-    for i, (img, targets) in enumerate(batch):
-        list_of_target_classes = []
-        list_of_target_bbox = []
-        if(len(targets) == 0):
-            list_of_target_bbox = torch.empty((0, 4))
-        for target in targets:
-            list_of_target_classes.append(target['category_id'])
-            bbox = target['bbox'].copy()
-            list_of_target_bbox.append(bbox)
-        boxes = tv_tensors.BoundingBoxes(list_of_target_bbox, format='XYWH', canvas_size=img.shape[-2:])
-        out_img, out_boxes = transform_val(img, boxes)
-        # Normalize the bounding boxes
-        for j in range(len(out_boxes)):
-            out_boxes[j][0] /= out_img.shape[2]
-            out_boxes[j][1] /= out_img.shape[1]
-            out_boxes[j][2] /= out_img.shape[2]
-            out_boxes[j][3] /= out_img.shape[1]
-        list_of_target_bbox = out_boxes
-        img_list.append(out_img)
-        list_of_target_classes = torch.tensor(list_of_target_classes, dtype=torch.int64)
-        list_of_target_bbox = list_of_target_bbox.reshape(len(list_of_target_bbox), 4)
-        target_list.append(list_of_target_classes)
-        bbox_list.append(list_of_target_bbox)
-    return (torch.utils.data._utils.collate.default_collate(img_list), (target_list, bbox_list))
+from mmdet.models import BaseDetector
+from mmdet.registry import MODELS
+from mmdet.structures import SampleList
+from mmdet.utils import ConfigType, OptConfigType, OptMultiConfig
 
 @torch.no_grad()
 def accuracy(output, target, topk=(1,)):
@@ -273,9 +190,18 @@ class FrozenBatchNorm2d(torch.nn.Module):
         bias = b - rm * scale
         return x * scale + bias
 
-class DETR(nn.Module):
-    def __init__(self, backbone: nn.Module, num_classes: int, max_detections: int, d_model: int, n_head: int,
-                 num_layers_enc: int, num_layers_dec: int, dropout: float = 0.1, tb_logger : pt.TensorBoardLogger = None):
+class Model(BaseDetector):
+    def __init__(self, 
+                 backbone: nn.Module,
+                 num_classes: int, 
+                 max_detections: int, 
+                 d_model: int, 
+                 n_head: int,
+                 num_layers_enc: int, 
+                 num_layers_dec: int, 
+                 dropout: float = 0.1,
+                 data_preprocessor: OptConfigType = None,
+                 init_cfg: OptMultiConfig = None):
         """
         DETR from "End-to-End Object Detection with Transformers" (Carion, 2020)
         :param backbone: backbone
@@ -287,7 +213,9 @@ class DETR(nn.Module):
         :param num_layers_enc: number of encoder layers
         :param num_layers_dec: number of decoder layers
         """
-        super().__init__()
+        super().__init__(
+            data_preprocessor=MODELS.build(data_preprocessor), init_cfg=init_cfg
+        )
         self.backbone = backbone
         self.position_encoding_x = AbsolutePositionalEncoding2D()
         self.position_encoding_query = AbsolutePositionalEncoding()
@@ -295,7 +223,6 @@ class DETR(nn.Module):
         self.lin_class = nn.Linear(d_model, num_classes + 1)
         self.lin_bbox = nn.Linear(d_model, 4)
         self.query_pos = nn.Parameter(torch.rand(1, max_detections, d_model))
-        self.tensorboard = tb_logger
         # Xavier initialization
         for p in self.query_pos.data:
             if p.dim() > 1:
@@ -310,26 +237,6 @@ class DETR(nn.Module):
         h = self.transformer(x_emb, query_pos, x_pos_emb, query_pos_emb)
         classes_logits, bbox = self.lin_class(h), self.lin_bbox(h).sigmoid()
         return classes_logits, bbox
-
-    def log_image(self, x, global_step):
-        classes_logits, bbox =self.forward(x)
-        # Convert the image to numpy
-        img = x[0].permute(1, 2, 0).cpu().numpy()
-        # Convert img to Umat
-        img = cv2.UMat(img)
-        classes = classes_logits.argmax(-1)
-        # Display the bounding boxes on the image
-        for i in range(len(classes[0])):
-            if(classes[0][i].item() == 91):
-                continue
-            bbox_x = bbox[0][i][0] * x.shape[3]
-            bbox_y = bbox[0][i][1] * x.shape[2]
-            bbox_h = bbox[0][i][2] * x.shape[3]
-            bbox_w = bbox[0][i][3] * x.shape[2]
-            img = cv2.rectangle(img, (int(bbox_x.item()), int(bbox_y.item())), (int(bbox_x.item()) + int(bbox_w.item()), int(bbox_y.item()) + int(bbox_h.item())), (255, 0, 0), 2)
-        # Convert the image to tensor
-        img = torch.tensor(img.get()).permute(2, 0, 1)
-        tb_logger.writer.add_image("pred", img, global_step=0)
     
     def backbone_parameters(self):
         return self.backbone.parameters()
@@ -341,109 +248,16 @@ class DETR(nn.Module):
     def freeze_backbone(self):
         for param in self.backbone.parameters():
             param.requires_grad = False
+
+    def loss(self, 
+             batch_inputs: torch.Tensor, 
+             batch_data_samples: SampleList) -> Union[dict, list]:
+        classes_logits, bbox = self.forward(batch_inputs)
+
+    def predict(self,
+                batch_inputs: torch.Tensor, 
+                batch_data_samples: SampleList, 
+                rescale: bool = True) -> SampleList:
+        classes_logits, bbox = self.forward(batch_inputs)
+        return classes_logits, bbox
     
-
-
-if __name__ == '__main__':
-    import pathlib
-
-    # Training parameters
-    epoch = 300
-    batch_size = 64
-    learning_rate_transformer = 1e-4
-    learning_rate_backbone = 1e-5
-    train_split = 0.8
-    val_split = 0.1
-    device = 'cuda' if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else 'cpu')
-
-    # Model parameters
-    d_model = 256
-    n_head = 8
-    n_latent = 128
-    n_layer = 6
-    n_output = 128
-    out_dim = 512
-    num_classes = 91
-    max_detections = 100
-    dropout = 0.1
-    cost_class = 1
-    cost_bbox = 1
-    cost_giou = 1
-    pooling = 'mean'
-    num_workers = 10
-
-    # Data
-    train_dataset = torchvision.datasets.CocoDetection(root='/home/wilah/datasets/train2017',
-                                                        annFile='/home/wilah/datasets/annotations/instances_train2017.json',
-                                                       transform=transforms.ToTensor())
-    valid_dataset = torchvision.datasets.CocoDetection(root='/home/wilah/datasets/val2017', 
-                                                       annFile='/home/wilah/datasets/annotations/instances_val2017.json',
-                                                       transform=transforms.ToTensor())
-    
-    # Create subsets of the dataset with only 1 image
-    #train_dataset = Subset(train_dataset, [0])
-    #valid_dataset = Subset(valid_dataset, [0])
-
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
-                                               num_workers=num_workers, pin_memory=True, collate_fn=collate_fn_train)
-    valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=batch_size, shuffle=False,
-                                               num_workers=num_workers, pin_memory=True, collate_fn=collate_fn_val)
-
-    writer = SummaryWriter('runs')
-    tb_logger = pt.TensorBoardLogger(writer)
-
-    # Model and optimizer
-    resnet50 = torchvision.models.resnet50(weights=torchvision.models.ResNet50_Weights.DEFAULT, norm_layer=FrozenBatchNorm2d)
-    backbone = nn.Sequential(*list(resnet50.children())[:-2], nn.Conv2d(2048, d_model, 1))
-    model = DETR(backbone, num_classes, max_detections, d_model, n_head, n_layer, n_layer, dropout, tb_logger)
-    optimizer = torch.optim.AdamW(
-        [
-            {"params" : model.backbone_parameters(), "lr" : learning_rate_backbone},
-            {"params" : model.transformer_parameters(), "lr" : learning_rate_transformer, "weight_decay":1e-4}
-        ],
-        lr=learning_rate_transformer,
-    )
-    #model.freeze_backbone()
-    matcher = HungarianMatcher(cost_class, cost_bbox, cost_giou)
-    weight_dict = {'loss_ce': 1, 'loss_bbox': 5, 'loss_giou': 2}
-    eos_coef = 0.1
-    losses = ['labels', 'boxes', 'cardinality']
-    model_pt = pt.Model(model, optimizer, Criterion(num_classes, matcher, weight_dict, eos_coef, losses))
-    model_pt.to(device)
-
-    # Display a data from the training set with bounding boxes
-    if(DISPLAY_DATA):
-        for k in range(NUMBER_OF_BATCHES_TO_SHOW):
-            batch = next(iter(valid_loader))
-            img_list = batch[0]
-            target_list = batch[1][0]
-            bbox_list = batch[1][1]
-            for idx in range(len(img_list)):
-                img = img_list[idx]
-                target_classes = target_list[idx]
-                target_bbox = bbox_list[idx]
-                fig, ax = plt.subplots(1)
-                ax.imshow(img.permute(1, 2, 0))
-                for j in range(len(target_classes)):
-                    bbox = target_bbox[j]
-                    rect = patches.Rectangle((bbox[0] * img.shape[2], bbox[1] * img.shape[1]), bbox[2] * img.shape[2], bbox[3] * img.shape[1], linewidth=1, edgecolor='r', facecolor='none')
-                    ax.add_patch(rect)
-                plt.show()
-        # Wait for the user to close the windows
-        input("Press Enter to continue...")
-
-    # Training
-    pathlib.Path('logs').mkdir(parents=True, exist_ok=True)
-    history = model_pt.fit_generator(train_loader, None, epochs=epoch, callbacks=[
-        pt.ModelCheckpoint('logs/detr_best_epoch_{epoch}.ckpt', monitor='loss', mode='min',
-                           save_best_only=True,
-                           keep_only_last_best=True, restore_best=False, verbose=True,
-                           temporary_filename='best_epoch.ckpt.tmp'),
-        pt.ClipNorm(model.parameters(), max_norm=0.1, norm_type=2.0),
-        pt.StepLR(step_size=200, gamma=0.1),
-        tb_logger
-    ])
-    
-    # Test
-    #test_loss, test_acc = model.evaluate_generator(test_loader)
-    #print('test_loss: {:.4f} test_acc: {:.2f}'.format(test_loss, test_acc))

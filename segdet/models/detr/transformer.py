@@ -5,8 +5,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from absolute_positional_encoding import AbsolutePositionalEncoding
-
 
 class FeedForward(nn.Module):
     def __init__(self, in_channel: int, mid_channels: int, out_channels: int, dropout: float):
@@ -146,19 +144,6 @@ class MultiHeadAttention(nn.Module):
 
         out = torch.cat([h(q, k, v, attn_mask) for h in self.heads], dim=-1)
         return self.dropout(self.fc(out))
-
-
-class RelativeTransformerEncoderLayer(TransformerEncoderLayer):
-    def __init__(self, d_model: int, n_head: int, dropout: float, multihead_bias: bool, n_token: int,
-                 norm_layer: Callable = nn.LayerNorm):
-        super().__init__(d_model, n_head, dropout, multihead_bias, norm_layer)
-        self.attention = MultiHeadAttention(d_model, n_head, d_model // n_head, dropout, AttentionHead,
-                                            dict(attention_operation=RelativePositionalEncoding(n_token)))
-
-    def forward(self, q, k, v, *, mask=None, is_causal=False):
-        if is_causal is not False:
-            raise ValueError('is_causal is not supported for RelativeTransformerEncoderLayer')
-        return super().forward(q, k, v, mask=mask)
 
 
 def _init_transformer_weights(module):
