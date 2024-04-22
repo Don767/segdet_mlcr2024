@@ -1,22 +1,21 @@
 import torch
 import torch.nn as nn
-
 from mmengine.config import Config
-from mmengine.runner import load_checkpoint
 from mmengine.logging import MMLogger
+from mmengine.runner import load_checkpoint
 
 from loading_utils import build_model
 
 
 class InferenceModel(nn.Module):
     def __init__(
-        self,
-        model_name: str,
-        model_cfg: Config,
-        checkpoint: str = None,
-        device: str = "cuda",
-        half_precision: bool = True,
-        **kwargs,
+            self,
+            model_name: str,
+            model_cfg: Config,
+            checkpoint: str = None,
+            device: str = "cuda",
+            half_precision: bool = True,
+            **kwargs,
     ) -> None:
         super(InferenceModel, self).__init__()
         self.model_cfg = model_cfg
@@ -25,7 +24,7 @@ class InferenceModel(nn.Module):
         if self.checkpoint is None:
             logger = MMLogger.get_current_instance()
             logger.warning(
-                f"No checkpoint to load. The performances might be lower than expected."
+                "No checkpoint to load. The performances might be lower than expected."
             )
         else:
             load_checkpoint(self.model, self.checkpoint, map_location="cpu")
@@ -39,5 +38,17 @@ class InferenceModel(nn.Module):
     def forward(self, data: str):
         with torch.cuda.amp.autocast(enabled=self.half_precision):
             inputs = data["inputs"].to(self.device)
+            outputs = self.model.predict(inputs, data["data_samples"])
+        return outputs
+
+
+class InferenceWrapper(nn.Module):
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
+
+    def forward(self, data: str):
+        with torch.cuda.amp.autocast(enabled=False):
+            inputs = data["inputs"].to('cuda')
             outputs = self.model.predict(inputs, data["data_samples"])
         return outputs

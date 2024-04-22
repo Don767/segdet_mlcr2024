@@ -4,6 +4,7 @@ import multiprocessing as mp
 import os
 import pathlib
 import re
+import subprocess
 
 import requests
 from tqdm import tqdm
@@ -67,7 +68,10 @@ def download_weights(args):
 def test_network(path, conf, pth, gpu):
     conf_path = pathlib.Path(path) / conf
     pth_path = pathlib.Path('data/mmdetection_weights') / conf.replace('.py', '.pth')
-    print(f'python tools/speed_benchmark.py --conf {conf_path} --weights {pth_path} --gpu {gpu}')
+    print(f'Testing {conf_path} {pth_path} on GPU {gpu}...')
+    subprocess.run(
+        ['python', 'tools/metrics.py', '--conf', conf_path, '--weights', pth_path, '--gpu', str(gpu), '--mmdet'])
+    exit(123)
 
 
 def test_process(jobs, gpu):
@@ -77,7 +81,7 @@ def test_process(jobs, gpu):
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a detector")
-    parser.add_argument("--gpus", type=int, nargs='+', default=[0, 1, 2, 3], help="GPU id for evaluation")
+    parser.add_argument("--gpus", type=int, nargs='+', default=[0], help="GPU id for evaluation")
     args = parser.parse_args()
 
     return args
@@ -92,8 +96,9 @@ if __name__ == '__main__':
         clone_repo(repo_dir)
 
     config_dir = repo_dir / 'configs'
+    base_exclude = {'_base_', 'misc', 'common'}
     model_readmes = sorted(
-        [conf / 'README.md' for conf in config_dir.iterdir() if conf.name not in {'_base_', 'misc', 'common'}])
+        [conf / 'README.md' for conf in config_dir.iterdir() if conf.name not in base_exclude])
 
     print(f'Parsing {len(model_readmes)} readmes')
     to_run = []
@@ -105,6 +110,18 @@ if __name__ == '__main__':
     with mp.Pool(20) as p:
         it = tqdm(p.imap(download_weights, [(r, out_dir) for r in to_run]), total=len(to_run))
         collections.deque(it, maxlen=0)
+
+    selected_models = ['detr', 'rtmdet', 'yolo', 'convnext', 'swin', 'mask2former', 'maskformer', 'swin', 'faster_rcnn',
+                       'cascade_rcnn', 'cascade_rpn', 'centernet', 'dino', 'efficientnet', 'yolof', 'yolox', 'ssd']
+    # to_run = [r for r in to_run if any([m in r[0].name for m in selected_models])]
+    models = set()
+    for r in to_run:
+        p = r[0]
+        models.add(p)
+    for r in sorted(models):
+        print(r)
+    print(len(to_run))
+    exit(1)
 
     processes = []
     gpus = args.gpus

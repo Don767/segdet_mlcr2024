@@ -13,3 +13,4 @@ tools/launch_training.sh
 /runs/
 .vscode/launch.json
 *.csv
+/work_dirs/
