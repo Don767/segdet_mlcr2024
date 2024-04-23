@@ -34,7 +34,7 @@ class Concat(nn.Module):
 
 
 class Conv(nn.Module):
-    # Standard convolution with batch normalization and SiLu (as used in Yolov7's freebies)
+    # Standard convolution with batch normalization and SiLu (as used in Yolov7)
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True):  # ch_in, ch_out, kernel, stride, padding, groups
         super(Conv, self).__init__()
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p), groups=g, bias=False)
@@ -49,7 +49,7 @@ class Conv(nn.Module):
 
 
 class SPPCSPC(nn.Module):
-    # Spatial Pyramid Pooling Layer for Cross Stage Partial Network as used in Yolov7's freebies
+    # Spatial Pyramid Pooling Layer for Cross Stage Partial Network as used in Yolov7
     # Original: https://github.com/WongKinYiu/CrossStagePartialNetworks
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, k=(5, 9, 13)):
         super(SPPCSPC, self).__init__()
@@ -71,7 +71,7 @@ class SPPCSPC(nn.Module):
 
 
 class ImplicitA(nn.Module):
-    # Implicit Addition as used in Yolov7's freebies
+    # Implicit Addition as used in Yolov7
     # Original from YOLOR: https://github.com/WongKinYiu/yolor
     def __init__(self, channel, mean=0., std=.02):
         super(ImplicitA, self).__init__()
@@ -86,7 +86,7 @@ class ImplicitA(nn.Module):
     
 
 class ImplicitM(nn.Module):
-    # Implicit Multiplication as used in Yolov7's freebies
+    # Implicit Multiplication as used in Yolov7
     # Original from YOLOR: https://github.com/WongKinYiu/yolor
     def __init__(self, channel, mean=1., std=.02):
         super(ImplicitM, self).__init__()
@@ -101,7 +101,7 @@ class ImplicitM(nn.Module):
 
 
 class RepConv(nn.Module):
-    # Represented convolution as used in Yolov7's freebies
+    # Represented convolution as used in Yolov7
     # Original article: https://arxiv.org/abs/2101.03697
 
     def __init__(self, c1, c2, k=3, s=1, p=None, g=1, act=True, deploy=False):
