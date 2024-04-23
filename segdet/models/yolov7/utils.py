@@ -33,7 +33,7 @@ def attempt_load(weights, map_location=None):
 
 
 def check_anchor_order(m):
-    # Check anchor order against stride order for YOLO Detect() module m, and correct if necessary
+    # Check anchor order against stride order for YOLO Detect() module m, and correcting if necessary
     # Necessary for anchor order convention used in Yolov7
     a = m.anchor_grid.prod(-1).view(-1)  # anchor area
     da = a[-1] - a[0]  # delta a
@@ -128,7 +128,7 @@ def fuse_conv_and_bn(conv, bn):
 
 def labels_to_class_weights(labels, nc=80):
     # Get class weights (inverse frequency) from training labels
-    # From Yolov7 original article
+    # From Yolov7's official repository
     if labels[0] is None:  # no labels loaded
         return torch.Tensor()
 
@@ -156,7 +156,7 @@ def increment_path(path, exist_ok=True, sep=''):
 
 
 def initialize_weights(model):
-    # Taken from Yolov7 original article
+    # Taken from Yolov7's official repository
     # Mainly for the specific Batch Normalization layer initialization
     for m in model.modules():
         t = type(m)
@@ -186,7 +186,7 @@ def one_cycle(y1=0.0, y2=1.0, steps=100):
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):  # img(16,3,256,416)
     # scales img(bs,3,y,x) by ratio constrained to gs-multiple
-    # From Yolov7 original article
+    # From Yolov7's official repository
     if ratio == 1.0:
         return img
     else:
