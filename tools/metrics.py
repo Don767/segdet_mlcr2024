@@ -58,11 +58,13 @@ def log_and_return_metrics(logger, times, title):
     return table
 
 
-def speed_benchmark(batch_size, config_file, weights, imgs_path, is_mmdet, half_precision=False):
+def speed_benchmark(batch_size, config_file, weights, imgs_path, is_mmdet, is_fp16=False):
     logger = MMLogger.get_current_instance()
     cfg = Config.fromfile(config_file)
 
     cfg.work_dir = pathlib.Path('./work_dirs') / pathlib.Path(config_file).stem
+    if is_fp16:
+        cfg.fp16 = dict(loss_scale='dynamic')
 
     if is_mmdet:
         cfg.data_preprocessor = dict(
@@ -93,14 +95,14 @@ def speed_benchmark(batch_size, config_file, weights, imgs_path, is_mmdet, half_
             ),
         ]
         runner = make_runner(cfg, is_mmdet, weights)
-        infer_model = InferenceWrapper(runner.model, half_precision=half_precision)
+        infer_model = InferenceWrapper(runner.model, half_precision=is_fp16)
     else:
         model_cfg = cfg.get("model")
         infer_model = InferenceModel(
             model_name=model_cfg.pop("type"),
             model_cfg=model_cfg,
             checkpoint=weights,
-            half_precision=half_precision,
+            half_precision=is_fp16,
         )
     inf_data_preprocessor = InferenceDataPreProcessor(
         mean=cfg.get("data_preprocessor").get("mean"),
@@ -205,6 +207,7 @@ def parse_args():
     parser.add_argument("--weights", help="model config file path")
     parser.add_argument("--gpu", type=int, default=0, help="GPU id for evaluation")
     parser.add_argument("--mmdet", action="store_true", help="Test mmdet model instead of custom one")
+    parser.add_argument('--fp16', action="store_true", help="Whether to enable half-precision")
     args = parser.parse_args()
 
     return args
@@ -216,26 +219,24 @@ def main(args):
     config_file = check_file(args.conf)  # check file
     cfg = Config.fromfile(config_file)
     weights = check_file(args.weights)  # check file
+    is_fp16 = args.fp16
+
+    if is_fp16:
+        cfg.fp16 = dict(loss_scale='dynamic')
 
     # Create a csv named <config_file>_<weights_file>.csv
     # Strip the path and extension from the config file
     config_file_name = os.path.splitext(os.path.basename(config_file))[0]
     # Strip the path and extension from the weights file
     weights_name = os.path.splitext(os.path.basename(weights))[0]
-    with open(f"{config_file_name}_{weights_name}.csv", "w") as f:
-        writer = csv.writer(f)
-        writer.writerow(["config_file",
-                         "weights_file",
-                         "model_size (MB)",
-                         "mAP",
-                         "AP50",
-                         "AP75",
-                         "APs",
-                         "APm",
-                         "APl",
-                         "Time_1_mean", "Time_1_std", "Time_1_min", "Time_1_median", "Time_1_max",
-                         "Time_16_mean", "Time_16_std", "Time_16_min", "Time_16_median", "Time_16_max",
-                         "Time_32_mean", "Time_32_std", "Time_32_min", "Time_32_median", "Time_32_max"])
+
+    csv_path = pathlib.Path('csv')
+    csv_path.mkdir(parents=True, exist_ok=True)
+    output_csv = f"{csv_path}/{config_file_name}_{weights_name}.csv"
+
+    if pathlib.Path(output_csv).exists():
+        print(f'Skipping for {config_file}, csv already generated...')
+        exit(0)
 
     gpu = args.gpu
     torch.cuda.set_device(gpu)
@@ -251,21 +252,45 @@ def main(args):
         metrics["coco/bbox_mAP_s"], metrics["coco/bbox_mAP_m"], metrics["coco/bbox_mAP_l"]
     img_path = "./data/coco/val2017/"
 
-    batch_size = 1
-    table = speed_benchmark(batch_size, config_file, weights, img_path, args.mmdet)
-    time_1_mean, time_1_std, time_1_min, time_1_median, time_1_max = table[0][1], table[1][1], table[2][1], table[3][1], \
-        table[4][1]
-    batch_size = 16
-    table = speed_benchmark(batch_size, config_file, weights, img_path, args.mmdet)
-    time_16_mean, time_16_std, time_16_min, time_16_median, time_16_max = table[0][1], table[1][1], table[2][1], \
-        table[3][1], table[4][1]
-    batch_size = 32
-    table = speed_benchmark(batch_size, config_file, weights, img_path, args.mmdet)
-    time_32_mean, time_32_std, time_32_min, time_32_median, time_32_max = table[0][1], table[1][1], table[2][1], \
-        table[3][1], table[4][1]
+    time_1_mean = time_1_std = time_1_min = time_1_median = time_1_max = time_16_mean = time_16_std = time_16_min = time_16_median = time_16_max = time_32_mean = time_32_std = time_32_min = time_32_median = time_32_max = -1
 
-    with open(f"{config_file_name}_{weights_name}.csv", "a") as f:
+    try:
+        batch_size = 1
+        table = speed_benchmark(batch_size, config_file, weights, img_path, args.mmdet, is_fp16)
+        time_1_mean, time_1_std, time_1_min, time_1_median, time_1_max = table[0][1], table[1][1], table[2][1], \
+            table[3][1], \
+            table[4][1]
+    except:
+        ...
+    try:
+        batch_size = 16
+        table = speed_benchmark(batch_size, config_file, weights, img_path, args.mmdet, is_fp16)
+        time_16_mean, time_16_std, time_16_min, time_16_median, time_16_max = table[0][1], table[1][1], table[2][1], \
+            table[3][1], table[4][1]
+    except:
+        ...
+    try:
+        batch_size = 32
+        table = speed_benchmark(batch_size, config_file, weights, img_path, args.mmdet, is_fp16)
+        time_32_mean, time_32_std, time_32_min, time_32_median, time_32_max = table[0][1], table[1][1], table[2][1], \
+            table[3][1], table[4][1]
+    except:
+        ...
+
+    with open(output_csv, "a") as f:
         writer = csv.writer(f)
+        writer.writerow(["config_file",
+                         "weights_file",
+                         "model_size (MB)",
+                         "mAP",
+                         "AP50",
+                         "AP75",
+                         "APs",
+                         "APm",
+                         "APl",
+                         "Time_1_mean", "Time_1_std", "Time_1_min", "Time_1_median", "Time_1_max",
+                         "Time_16_mean", "Time_16_std", "Time_16_min", "Time_16_median", "Time_16_max",
+                         "Time_32_mean", "Time_32_std", "Time_32_min", "Time_32_median", "Time_32_max"])
         writer.writerow([config_file, weights, model_size, mAP, AP50, AP75, APs, APm, APl,
                          time_1_mean, time_1_std, time_1_min, time_1_median, time_1_max,
                          time_16_mean, time_16_std, time_16_min, time_16_median, time_16_max,
