@@ -24,9 +24,9 @@ from tqdm import tqdm
 from model import Model
 from utils import attempt_load, check_file, check_dataset, check_img_size, labels_to_class_weights, \
     increment_path, intersect_dicts, one_cycle, select_device
-# COULDN'T GET SELF-MADE DATALOADER TO WORK WITH ARCHITECTURE, USING ORIGINALS FOR NOW
+
+# Taken directly from YOLOv7's original repository:
 from yolo_dataloader import attempt_download, create_dataloader
-# LOSSES USED BY ORIGINAL PAPER ARE ESSENTIAL FOR PERFORMANCES IN THE PAPER, USING AS SUCH FOR NOW
 from yolo_loss import ComputeLoss, ComputeLossOTA
 from yolo_test import test
 
@@ -402,7 +402,6 @@ if __name__ == '__main__':
     # Set DDP variables
     opt.world_size = int(os.environ['WORLD_SIZE']) if 'WORLD_SIZE' in os.environ else 1
 
-    # opt.hyp = opt.hyp or ('hyp.finetune.yaml' if opt.weights else 'hyp.scratch.yaml')
     opt.data, opt.cfg, opt.hyp = check_file(opt.data), check_file(opt.cfg), check_file(opt.hyp)  # check files
     assert len(opt.cfg) or len(opt.weights), 'either --cfg or --weights must be specified'
     opt.img_size.extend([opt.img_size[-1]] * (2 - len(opt.img_size)))  # extend to 2 sizes (train, test)
