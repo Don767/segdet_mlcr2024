@@ -2,7 +2,7 @@
 #SBATCH --gres=gpu:2
 #SBATCH --cpus-per-task=16
 #SBATCH --time=10-00:00
-#SBATCH --job-name=$NAME
+#SBATCH --job-name=run_all
 #SBATCH --output=%x-%j.out
 
 cd ~/segdet_mlcr2024 || exit
