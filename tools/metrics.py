@@ -5,6 +5,7 @@ import os
 import pathlib
 import sys
 import time
+from typing import Optional, Union
 
 import numpy as np
 import torch
@@ -23,6 +24,21 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from inference_model import InferenceModel, InferenceWrapper
 from inference_data_preprocessor import InferenceDataPreProcessor
+
+# Monkey patch the Config constructor to disable _format_dict
+_backup_init = Config.__init__
+
+
+def __init__(self,
+             cfg_dict: dict = None,
+             cfg_text: Optional[str] = None,
+             filename: Optional[Union[str, pathlib.Path]] = None,
+             env_variables: Optional[dict] = None,
+             format_python_code: bool = False):
+    _backup_init(self, cfg_dict, cfg_text, filename, env_variables, format_python_code)
+
+
+Config.__init__ = __init__
 
 
 def batchify_lst(lst, batch_size):

@@ -112,11 +112,23 @@ if __name__ == '__main__':
         collections.deque(it, maxlen=0)
 
     selected_models = {'cascade_rcnn': '7,16,4', 'cascade_rpn': '1', 'centernet': '0', 'conditional_detr': '0',
-                       'convnext': '0,2',
-                       'dab_detr': '0', 'deformable_detr': '0,2', 'detr': '0', 'dino': '1,3', 'efficientnet': '0',
-                       'faster_rcnn': '30', 'grounding_dino': '0,3', 'mask2former': '2,7', 'maskformer': '0,1',
-                       'rtmdet': '3,1,12', 'ssd': '0,1,2', 'swin': '1,3', 'yolo': '0,4', 'yolof': '0',
-                       'yolox': '0,1,2,3'}
+        'convnext': '0,2',
+        'dab_detr': '0',
+        'deformable_detr': '0,2',
+        'detr': '0',
+        'dino': '1,3',
+        'efficientnet': '0',
+        'faster_rcnn': '30',
+        'grounding_dino': '0,3',
+        'mask2former': '2,7',
+        'maskformer': '0,1',
+        'rtmdet': '3,1,12',
+        'ssd': '0,1,2',
+        'swin': '1,3',
+        'yolo': '0,4',
+        'yolof': '0',
+        'yolox': '0,1,2,3'
+    }
     selected_models = {k: [int(i.strip()) for i in v.split(',')] for k, v in selected_models.items()}
     to_run = sorted([r for r in to_run if any([m in r[0].name for m in selected_models.keys()])])
 
