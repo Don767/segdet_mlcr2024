@@ -28,10 +28,9 @@ Python packages required (can be installed via pip or conda):
 - dill
 - requests
 
-Please refer to [doc/INSTALLATION.md](doc/INSTALLATION.md) for more details on how to install the required packages and dependencies.
+Please refer to [docs/INSTALLATION.md](docs/INSTALLATION.md) for more details on how to install the required packages and dependencies.
 
-Details on how to download the datasets used in this project can be found in [doc/DATASETS.md](doc/DATASETS.md).
-
+Details on how to download the datasets used in this project can be found in [docs/DATASETS.md](docs/DATASETS.md).
 
 If desired, use the same seed used for our results below:
 
@@ -50,13 +49,13 @@ def set_seed(seed):
     os.environ["PYTHONHASHSEED"] = str(seed)
 ```
 
-### Important notice for docker
+### Docker
 
-Please make sure to have cv2's expected dependencies (not natively on some docker environments):
+We provide a `Dockerfile` at the root of this projet to allow easy reproduction of our results.
+This is the recommended way of running this project.
+We detail instructions on how to use Docker in [docs/TRAINING.md](docs/TRAINING.md)
 
-```bash
-RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
-``` 
+Scripts in `scripts/` shows how to run our model on a SLURM cluster.
 
 ## Training
 
@@ -66,7 +65,7 @@ To train the model in the paper, run this command:
 python tools/train.py --config <path/to/config>
 ```
 
-Please refer to [doc/TRAINING.md](doc/TRAINING.md) for more details on how train our models with our pipeline (including docker/slurm integration).
+Please refer to [docs/TRAINING.md](docs/TRAINING.md) for more details on how train our models with our pipeline (including Docker/SLURM integration).
 
 ## Evaluation
 
@@ -101,7 +100,7 @@ COMING SOON
 
 If you use this code in your research, please cite the following:
 
-@inproceedings{lim2019fast,
+@inproceedings{fastDet2024,
   title={RTMDet MLRP2024},
   author={Pierre-Luc Asselin, Vincent Coulombe, William Guimont-Martin, William Larrivée-Hardy},
   year={2024}
