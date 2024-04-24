@@ -79,10 +79,7 @@ python tools/metrics.py --conf <path/to/config> --weights <path/to/weights> \
 
 ## Pre-trained Models
 
-You can download pretrained models here:
-
-COMING SOON
-<!---[My awesome model](https://drive.google.com/mymodel.pth) trained on SOMETHING using parameters x,y,z.)-->
+You can download pretrained models from the `weights/` folder.
 
 ## Results
 

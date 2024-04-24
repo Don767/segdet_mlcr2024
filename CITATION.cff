@@ -1,0 +1,32 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: segdet_mlcr2024
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Pierre-Luc
+    family-names: Asselin
+    affiliation: Université Laval
+  - given-names: Coulombe
+    family-names: Vincent
+    affiliation: Université Laval
+  - given-names: Guimont-Martin
+    family-names: William
+    affiliation: Université Laval
+    email: william.guimont-martin@norlab.ulaval.ca
+    orcid: 'https://orcid.org/0000-0002-8850-8399'
+  - given-names: Larrivée-Hardy
+    family-names: William
+    affiliation: Université Laval
+repository-code: 'https://github.com/Don767/segdet_mlcr2024'
+keywords:
+  - Object Detection
+  - Real time
+  - Benchmark
+  - GPU
+license: MIT
+date-released: '2024-04-26'
