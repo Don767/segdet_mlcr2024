@@ -83,7 +83,7 @@ python tools/metrics.py --conf <path/to/config> --weights <path/to/weights> \
 You can download pretrained models here:
 
 COMING SOON
-[comment]: <> ([My awesome model](https://drive.google.com/mymodel.pth) trained on SOMETHING using parameters x,y,z.) 
+<!---[My awesome model](https://drive.google.com/mymodel.pth) trained on SOMETHING using parameters x,y,z.)-->
 
 ## Results
 
@@ -91,9 +91,9 @@ Our models achieves the following performance on :
 
 ### [Image Classification on MS COCO 2017](https://cocodataset.org/#home)
 
-[comment]: <> (| Model name         | Top 1 Accuracy  | Top 5 Accuracy |)
-[comment]: <> (| ------------------ |---------------- | -------------- |)
-[comment]: <> (| My awesome model   |     85%         |      95%       |)
+<!---| Model name         | Top 1 Accuracy  | Top 5 Accuracy |-->
+<!---| ------------------ |---------------- | -------------- |-->
+<!---| My awesome model   |     85%         |      95%       |-->
 
 COMING SOON
 
