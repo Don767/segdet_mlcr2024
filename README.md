@@ -87,6 +87,8 @@ Our models achieves the following performance on :
 
 ### [Image Classification on MS COCO 2017](https://cocodataset.org/#home)
 
+Our raw results for each GPU are available in `results/`.
+
 <!---| Model name         | Top 1 Accuracy  | Top 5 Accuracy |-->
 <!---| ------------------ |---------------- | -------------- |-->
 <!---| My awesome model   |     85%         |      95%       |-->
