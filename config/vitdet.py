@@ -6,7 +6,7 @@ backend_args = None
 # https://github.com/facebookresearch/detectron2/blob/afe9eb920646102f7e6bf0cd2115841cea2aca13/projects/ViTDet/configs/COCO/mask_rcnn_vitdet_b_100ep.py#L24
 lr = 1.0e-4
 weight_decay = 0.01
-batch_size_per_gpu = 24
+batch_size_per_gpu = 2
 epochs = 100
 optimizer = 'AdamW'
 drop_rate_path = 0.1
@@ -16,7 +16,7 @@ lr_step_milestones_paper = [163889, 177546]
 lr_step_milestones = [x / max_iter_paper * max_iter for x in lr_step_milestones_paper]
 warmup_iter = 250
 warmup_factor_paper = 0.001
-img_size = (1024, 1024)
+img_size = (960, 960)
 
 #### Model ####
 checkpoint = "https://download.openmmlab.com/mmdetection/v3.0/rtmdet/cspnext_rsb_pretrain/cspnext-s_imagenet_600e.pth"

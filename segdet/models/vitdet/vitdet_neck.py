@@ -24,7 +24,7 @@ class VitDetNeck(nn.Module):
                     kernel_size=2,
                     stride=2,
                 ),
-                nn.LayerNorm([self.out_features // 2, 64, 64]),
+                nn.LayerNorm([self.out_features // 2, 60, 60]),
                 nn.GELU(),
                 nn.ConvTranspose2d(
                     in_channels=self.out_features // 2,
@@ -34,7 +34,7 @@ class VitDetNeck(nn.Module):
                 ),
             ]
             out = self.out_features // 4
-            spatial_size = 128
+            spatial_size = 120
         elif scale_factor == 2.0:
             layers = [nn.ConvTranspose2d(
                 in_channels=self.in_features,
@@ -43,15 +43,15 @@ class VitDetNeck(nn.Module):
                 stride=2,
             )]
             out = self.out_features // 2
-            spatial_size = 64
+            spatial_size = 60
         elif scale_factor == 1.0:
             layers = []
             out = self.in_features
-            spatial_size = 32
+            spatial_size = 30
         elif scale_factor == 0.5:
             layers = [nn.MaxPool2d(kernel_size=2, stride=2)]
             out = self.in_features
-            spatial_size = 16
+            spatial_size = 15
         else:
             raise ValueError(f"Invalid scale factor: {scale_factor}")
 
@@ -77,7 +77,7 @@ class VitDetNeck(nn.Module):
         batch_inputs = batch_inputs.last_hidden_state
         # remove first cls token and reshape to 2D (undo .flatten(2).transpose(1, 2))
         b, n, c = batch_inputs.shape
-        input = ein.rearrange(batch_inputs[:, 1:], 'b (h w) c -> b c h w', h=32)
+        input = ein.rearrange(batch_inputs[:, 1:], 'b (h w) c -> b c h w', h=30)
         out = []
         for i, n in enumerate(self.neck):
             x = n(input)
