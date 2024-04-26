@@ -13,8 +13,8 @@ import torch
 import yaml
 from tqdm import tqdm
 
-from yolo_dataloader import attempt_load, create_dataloader, xyxy2xywh, xywh2xyxy
-from utils import check_dataset, check_file, time_synchronized
+from yolo_dataloader import create_dataloader, xyxy2xywh, xywh2xyxy
+from utils import attempt_load, check_dataset, check_file, time_synchronized
 from yolo_loss import box_iou
 
 
