@@ -344,6 +344,17 @@ val_pipeline = [
         scale=img_size,
         type="Resize",
     ),
+    dict(
+        pad_val=dict(
+            img=(
+                114,
+                114,
+                114,
+            )
+        ),
+        size=img_size,
+        type="Pad",
+    ),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(
         meta_keys=(
