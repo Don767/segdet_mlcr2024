@@ -79,7 +79,8 @@ python tools/metrics.py --conf <path/to/config> --weights <path/to/weights> \
 
 ## Pre-trained Models
 
-You can download pretrained models from the `weights/` folder.
+Some weights are available in the `weights/` folder.
+Additional weights are available [here](https://drive.google.com/drive/folders/1wBi9-aDgOgOUS0r54mH29C57rr5hZXWR?usp=sharing)
 
 ## Results
 
