@@ -6,7 +6,7 @@ backend_args = None
 # https://github.com/facebookresearch/detectron2/blob/afe9eb920646102f7e6bf0cd2115841cea2aca13/projects/ViTDet/configs/COCO/mask_rcnn_vitdet_b_100ep.py#L24
 lr = 1.0e-4
 weight_decay = 0.01
-batch_size_per_gpu = 24
+batch_size_per_gpu = 32
 epochs = 100
 optimizer = 'AdamW'
 drop_rate_path = 0.1
@@ -16,7 +16,7 @@ lr_step_milestones_paper = [163889, 177546]
 lr_step_milestones = [x / max_iter_paper * max_iter for x in lr_step_milestones_paper]
 warmup_iter = 250
 warmup_factor_paper = 0.001
-img_size = (1024, 1024)
+img_size = (960, 960)
 
 #### Model ####
 checkpoint = "https://download.openmmlab.com/mmdetection/v3.0/rtmdet/cspnext_rsb_pretrain/cspnext-s_imagenet_600e.pth"
@@ -233,7 +233,7 @@ data_preprocessor = dict(
 #### Training/Evaluation ####
 metric = 'mAP'
 evaluation = dict(save_best=metric)
-val_interval = 5
+val_interval = 200
 val_ann_file = 'annotations/instances_val2017.json'
 val_img_prefix = 'val2017/'
 train_ann_file = 'annotations/instances_train2017.json'
@@ -343,6 +343,17 @@ val_pipeline = [
         keep_ratio=True,
         scale=img_size,
         type="Resize",
+    ),
+    dict(
+        pad_val=dict(
+            img=(
+                114,
+                114,
+                114,
+            )
+        ),
+        size=img_size,
+        type="Pad",
     ),
     dict(type='LoadAnnotations', with_bbox=True),
     dict(

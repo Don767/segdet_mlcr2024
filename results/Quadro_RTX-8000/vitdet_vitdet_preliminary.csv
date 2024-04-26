@@ -1,0 +1,2 @@
+config_file,weights_file,model_size (MB),mAP,AP50,AP75,APs,APm,APl,Time_1_mean,Time_1_std,Time_1_min,Time_1_median,Time_1_max,Time_16_mean,Time_16_std,Time_16_min,Time_16_median,Time_16_max,Time_32_mean,Time_32_std,Time_32_min,Time_32_median,Time_32_max
+config/vitdet.py,weights/vitdet_preliminary.pth,591.5989532470703,0.015,0.047,0.006,0.001,0.006,0.029,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1.4812258023705978,0.011177398295375474,1.4582225389312953,1.4786503269569948,1.5184048269875348

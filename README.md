@@ -1,26 +1,41 @@
 # SEGDet - ML Reproductibility Challenge 2024
 
->📋  Optional: include a graphic explaining main result (+bibtex entry, link to demos, blog posts and tutorials?)
-
 ## Installation
 
 Python packages required (can be installed via pip or conda):
 
-- python >= 3.6.1
+- cython==3.0.9
+- matplotlib==3.8.3
+- numpy>=1.26.0
+- opencv-python>=4.1.1
+- openmim==0.3.9
+- Pillow>=7.1.2
+- protobuf<4.21.3
+- psutil>=5.9.8
+- pycocotools==2.0.7
+- PyYAML>=5.3.1
+- requests>=2.23.0
+- setuptools>=69.2.0
+- scipy>=1.4.1
+- tensorboard==2.16.2
+- torch
+- torchvision
+- tqdm>=4.41.0
+- wandb==0.16.4
+- git+https://github.com/willGuimont/pipeline
+- transformers
+- einops
+- dill
+- requests
 
->📋  Verify that the Python version is correct.
+Please refer to [docs/INSTALLATION.md](docs/INSTALLATION.md) for more details on how to install the required packages and dependencies.
 
-Please refer to [doc/INSTALL.md](doc/INSTALL.md) for more details on how to install the required packages and dependencies.
-
-More details on how to install the required packages and dependencies can be found in [doc/INSTALL.md](doc/INSTALL.md).
-
-Details on how to download the datasets used in this project can be found in [doc/DATASETS.md](doc/DATASETS.md).
-
->📋  Anything else required to set up the environment?
+Details on how to download the datasets used in this project can be found in [docs/DATASETS.md](docs/DATASETS.md).
 
 If desired, use the same seed used for our results below:
 
 ```python
+# Where seed = 1 at base.
 def set_seed(seed):
     """Set seed"""
     random.seed(seed)
@@ -34,64 +49,58 @@ def set_seed(seed):
     os.environ["PYTHONHASHSEED"] = str(seed)
 ```
 
-### Important notice for docker
+### Docker
 
-Please make sure to have cv2 expected dependencies:
+We provide a `Dockerfile` at the root of this projet to allow easy reproduction of our results.
+This is the recommended way of running this project.
+We detail instructions on how to use Docker in [docs/TRAINING.md](docs/TRAINING.md)
 
-```bash
-RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
-``` 
+Scripts in `scripts/` shows how to run our model on a SLURM cluster.
 
 ## Training
 
 To train the model in the paper, run this command:
 
-```train
-python train.py --input-data <path_to_data> --alpha 10 --beta 20
+```shell
+python tools/train.py --config <path/to/config>
 ```
 
->📋  Example commands on how to train, including the full training procedure and appropriate hyperparameters.
+Please refer to [docs/TRAINING.md](docs/TRAINING.md) for more details on how train our models with our pipeline (including Docker/SLURM integration).
 
 ## Evaluation
 
-To evaluate my model on [MS COCO Val 2017](https://cocodataset.org/#download), run:
+To test our models on [MS COCO Val 2017](https://cocodataset.org/#download), run:
 
-```eval
-python eval.py --model-file mymodel.pth --benchmark imagenet
+```shell
+python tools/metrics.py --conf <path/to/config> --weights <path/to/weights> \
+  --gpu <GPU ID> --mmdet <True if testing MMDet presets, False if testing custom model> \
+  --fp16 <True to enable half-precision>
 ```
-
->📋  Evaluate the trained models on benchmarks reported, give commands that produce the results just below.
 
 ## Pre-trained Models
 
-You can download pretrained models here:
-
-- [My awesome model](https://drive.google.com/mymodel.pth) trained on SOMETHING using parameters x,y,z. 
+Some weights are available in the `weights/` folder.
+Additional weights are available [here](https://drive.google.com/drive/folders/1wBi9-aDgOgOUS0r54mH29C57rr5hZXWR?usp=sharing)
 
 ## Results
 
-Our model achieves the following performance on :
+Our models achieves the following performance on :
 
-### [Image Classification on SOMETHING](https://paperswithcode.com/sota/image-classification-on-imagenet)
+### [Image Classification on MS COCO 2017](https://cocodataset.org/#home)
 
-| Model name         | Top 1 Accuracy  | Top 5 Accuracy |
-| ------------------ |---------------- | -------------- |
-| My awesome model   |     85%         |      95%       |
+Our raw results for each GPU are available in `results/`.
 
->📋  Don't forget to link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it. 
+<!---| Model name         | Top 1 Accuracy  | Top 5 Accuracy |-->
+<!---| ------------------ |---------------- | -------------- |-->
+<!---| My awesome model   |     85%         |      95%       |-->
 
-Lists of interesting results to reproduce in RTMDet:
-
-- Comparison with RTMDet on the number of parameters, FLOPS, latency, and accuracy on COCO
-val2017 set (300 iterations, Table 2 and 3)
-- Architecture performance comparaison with reproduced model (Table 5)
-- Reproduce some results only shown for RTMDet-R (we reproduce RTMDet-ins only)?
+COMING SOON
 
 ## Citation
 
 If you use this code in your research, please cite the following:
 
-@inproceedings{lim2019fast,
+@inproceedings{fastDet2024,
   title={RTMDet MLRP2024},
   author={Pierre-Luc Asselin, Vincent Coulombe, William Guimont-Martin, William Larrivée-Hardy},
   year={2024}
@@ -99,8 +108,7 @@ If you use this code in your research, please cite the following:
 
 ## Contributing
 
-We want to make contributing to this project as easy and transparent as
-possible.
+We want to make contributing to this project as easy and transparent as possible.
 
 ### Pull Requests
 We actively welcome your pull requests.

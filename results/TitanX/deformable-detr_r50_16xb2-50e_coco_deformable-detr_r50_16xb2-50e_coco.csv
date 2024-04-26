@@ -1,0 +1,2 @@
+config_file,weights_file,model_size (MB),mAP,AP50,AP75,APs,APm,APl,Time_1_mean,Time_1_std,Time_1_min,Time_1_median,Time_1_max,Time_16_mean,Time_16_std,Time_16_min,Time_16_median,Time_16_max,Time_32_mean,Time_32_std,Time_32_min,Time_32_median,Time_32_max
+data/mmdetection/configs/deformable_detr/deformable-detr_r50_16xb2-50e_coco.py,data/mmdetection_weights/deformable-detr_r50_16xb2-50e_coco.pth,153.2446517944336,0.443,0.632,0.486,0.268,0.477,0.588,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1

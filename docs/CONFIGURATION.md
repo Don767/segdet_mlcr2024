@@ -1,3 +1,7 @@
 # Configuration
 
-Here are the possible configurations for the models we reproduced.
+No alternative configuration considered for now. 
+
+Base models presented in their original paper where used, as closely as possible.
+
+Our configuration are in the `config/` directory.
