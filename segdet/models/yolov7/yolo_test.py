@@ -14,11 +14,12 @@ import yaml
 from tqdm import tqdm
 
 from yolo_dataloader import create_dataloader, xyxy2xywh, xywh2xyxy
-from utils import check_dataset, time_synchronized
+from utils import attempt_load, check_dataset, check_file, time_synchronized
 from yolo_loss import box_iou
 
 
 def test(data,
+         weights=None,
          batch_size=32,
          imgsz=640,
          conf_thres=0.001,
@@ -28,13 +29,25 @@ def test(data,
          model=None,
          dataloader=None,
          save_dir=Path(''),  # for saving images
-         save_conf=False,  # save auto-label confidences
          compute_loss=None,
          half_precision=True,
          is_coco=False,
          v5_metric=False):
     # Initialize/load model and set device
-    device = next(model.parameters()).device  # get model device
+    training = model is not None
+    if training:  # called by train.py
+        device = next(model.parameters()).device  # get model device
+
+    else:  # called directly
+        device = select_device(opt.device, batch_size=batch_size)
+
+        # Directories
+        save_dir = Path(increment_path(Path(opt.project) / opt.name, exist_ok=opt.exist_ok))  # increment run
+        (save_dir / 'labels' if save_txt else save_dir).mkdir(parents=True, exist_ok=True)  # make dir
+
+        # Load model
+        model = attempt_load(weights, map_location=device)  # load FP32 model
+        gs = max(int(model.stride.max()), 32)  # grid size (max stride)
 
         
 
@@ -187,6 +200,7 @@ def test(data,
 
     # Save JSON
     if save_json and len(jdict):
+        w = Path(weights[0] if isinstance(weights, list) else weights).stem if weights is not None else ''  # weights
         anno_json = './coco/annotations/instances_val2017.json'  # annotations json
         pred_json = str(save_dir / f"_predictions.json")  # predictions json
         print('\nEvaluating pycocotools mAP... saving %s...' % pred_json)
@@ -390,3 +404,43 @@ def coco80_to_coco91_class():  # converts 80-index (val2014) to 91-index (paper)
          35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,
          64, 65, 67, 70, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 84, 85, 86, 87, 88, 89, 90]
     return x
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog='yolo_test.py')
+    parser.add_argument('--weights', nargs='+', type=str, default='yolov7.pt', help='model.pt path(s)')
+    parser.add_argument('--data', type=str, default='data/coco.yaml', help='*.data path')
+    parser.add_argument('--batch-size', type=int, default=32, help='size of each image batch')
+    parser.add_argument('--imgsz', type=int, default=640, help='inference size (pixels)')
+    parser.add_argument('--conf-thres', type=float, default=0.001, help='object confidence threshold')
+    parser.add_argument('--iou-thres', type=float, default=0.65, help='IOU threshold for NMS')
+    parser.add_argument('--task', default='val', help='train, val, test or speed')
+    parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
+    parser.add_argument('--augment', action='store_true', help='augmented inference')
+    parser.add_argument('--verbose', action='store_true', help='report mAP by class')
+    parser.add_argument('--save-json', action='store_true', help='save a cocoapi-compatible JSON results file')
+    parser.add_argument('--project', default='runs/test', help='save to project/name')
+    parser.add_argument('--name', default='exp', help='save to project/name')
+    parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
+    parser.add_argument('--v5-metric', action='store_true', help='assume maximum recall as 1.0 in AP calculation')
+    opt = parser.parse_args()
+    opt.save_json |= opt.data.endswith('coco.yaml')
+    opt.data = check_file(opt.data)  # check file
+    print(opt)
+
+
+    if opt.task in ('train', 'val', 'test'):  # run normally
+        test(opt.data,
+             opt.weights,
+             opt.batch_size,
+             opt.imgsz,
+             opt.conf_thres,
+             opt.iou_thres,
+             opt.save_json,
+             opt.augment,
+             opt.verbose,
+             v5_metric=opt.v5_metric
+             )
+
+    elif opt.task == 'speed':  # speed benchmarks
+        for w in opt.weights:
+            test(opt.data, w, opt.batch_size, opt.imgsz, 0.25, 0.45, save_json=False, v5_metric=opt.v5_metric)
