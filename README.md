@@ -2,52 +2,9 @@
 
 ## Installation
 
-Python packages required (can be installed via pip or conda):
-
-- cython==3.0.9
-- matplotlib==3.8.3
-- numpy>=1.26.0
-- opencv-python>=4.1.1
-- openmim==0.3.9
-- Pillow>=7.1.2
-- protobuf<4.21.3
-- psutil>=5.9.8
-- pycocotools==2.0.7
-- PyYAML>=5.3.1
-- requests>=2.23.0
-- setuptools>=69.2.0
-- scipy>=1.4.1
-- tensorboard==2.16.2
-- torch
-- torchvision
-- tqdm>=4.41.0
-- wandb==0.16.4
-- git+https://github.com/willGuimont/pipeline
-- transformers
-- einops
-- dill
-- requests
-
 Please refer to [docs/INSTALLATION.md](docs/INSTALLATION.md) for more details on how to install the required packages and dependencies.
 
 Details on how to download the datasets used in this project can be found in [docs/DATASETS.md](docs/DATASETS.md).
-
-If desired, use the same seed used for our results below:
-
-```python
-# Where seed = 1 at base.
-def set_seed(seed):
-    """Set seed"""
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
-    os.environ["PYTHONHASHSEED"] = str(seed)
-```
 
 ### Docker
 
@@ -82,29 +39,34 @@ python tools/metrics.py --conf <path/to/config> --weights <path/to/weights> \
 Some weights are available in the `weights/` folder.
 Additional weights are available [here](https://drive.google.com/drive/folders/1wBi9-aDgOgOUS0r54mH29C57rr5hZXWR?usp=sharing)
 
+We also provide utilities to automatically benchmark models on your hardware.
+
+```
+# --gpu is a list of comma-separated values specifying the GPUs used for benchmarking
+python3 run_all.py --gpus 0
+```
+
 ## Results
 
-Our models achieves the following performance on :
-
-### [Image Classification on MS COCO 2017](https://cocodataset.org/#home)
-
-Our raw results for each GPU are available in `results/`.
+We detail the performances of our models on [Image Classification on MS COCO 2017](https://cocodataset.org/#home) in `results/`.
 
 <!---| Model name         | Top 1 Accuracy  | Top 5 Accuracy |-->
 <!---| ------------------ |---------------- | -------------- |-->
 <!---| My awesome model   |     85%         |      95%       |-->
 
-COMING SOON
+MORE COMING SOON
 
 ## Citation
 
 If you use this code in your research, please cite the following:
 
+```
 @inproceedings{fastDet2024,
-  title={RTMDet MLRP2024},
+  title={Replication Study and Benchmarking of Real-Time Object Detection Models},
   author={Pierre-Luc Asselin, Vincent Coulombe, William Guimont-Martin, William Larrivée-Hardy},
   year={2024}
 }
+```
 
 ## Contributing
 
