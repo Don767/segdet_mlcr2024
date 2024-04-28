@@ -49,6 +49,7 @@ python3 run_all.py --gpus 0
 ## Results
 
 We detail the performances of our models on [Image Classification on MS COCO 2017](https://cocodataset.org/#home) in `results/`.
+We provide an example Jupyter Notebook `table_extractor.ipynb` showing how to parse our results.
 
 <!---| Model name         | Top 1 Accuracy  | Top 5 Accuracy |-->
 <!---| ------------------ |---------------- | -------------- |-->
