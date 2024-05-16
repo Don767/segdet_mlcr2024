@@ -35,7 +35,6 @@ class Model(BaseDetector):
     def loss(
         self, batch_inputs: Tensor, batch_data_samples: SampleList
     ) -> Union[dict, list]:
-        print('yolo')
         x = self.extract_feat(batch_inputs)
         return self.bbox_head.loss(x, batch_data_samples)
 
