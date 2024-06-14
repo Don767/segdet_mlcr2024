@@ -1,5 +1,6 @@
 coco/*
 data/
+!data/.gitkeep
 *.pyc
 __pycache__/
 .idea/

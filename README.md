@@ -6,7 +6,7 @@ Please refer to [docs/INSTALLATION.md](docs/INSTALLATION.md) for more details on
 
 Details on how to download the datasets used in this project can be found in [docs/DATASETS.md](docs/DATASETS.md).
 
-### Docker
+### Docker and Podman
 
 We provide a `Dockerfile` at the root of this projet to allow easy reproduction of our results.
 This is the recommended way of running this project.
